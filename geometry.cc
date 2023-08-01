@@ -90,14 +90,14 @@ G4PVPlacement* geometry() {
 		auto world = n4::volume<G4Box>("world", vacuum, world_size/2, world_size/2, world_size/2); 	
 	
 		//Cylinder, acting as the vessel
-		auto vessel_steel = n4::volume<G4Tubs>("vessel_steel", steel, 0, vessel_out_rad_, vessel_out_length_/2 , 0., 360.*deg);
+		auto vessel_steel = n4::volume<G4Tubs>("vessel_steel", steel, 0., vessel_out_rad_, vessel_out_length_/2 , 0., 360.*deg);
 		n4::place(vessel_steel).in(world).at({0, 0, 0}).check(true).now();
         
 		//Build inside detector
         //BuildTPC(gas_, mesh_mat, steel, peek, vacuum, quartz, tpb, vessel_steel);		
 		
         
-        auto vessel = n4::volume<G4Tubs>("GasVessel", gas_, 0, vessel_rad_, vessel_length_/2 , 0., 360.*deg);
+        auto vessel = n4::volume<G4Tubs>("GasVessel", gas_, 0., vessel_rad_, vessel_length_/2 , 0., 360.*deg);
         n4::place(vessel).in(vessel_steel).at({0, 0, 0}).check(true).now();
         
         
@@ -115,7 +115,7 @@ G4PVPlacement* geometry() {
         G4double ring_thickn_=10.*mm;
        
         // Cathode
-        auto cathode= n4::volume<G4Tubs>("cathode", mesh_mat, 0, mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
+        auto cathode= n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
         //G4double cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
         G4double cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
         n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check(true).now();
@@ -148,13 +148,13 @@ G4PVPlacement* geometry() {
         G4double el_length_     = 15.*mm - anodeBracket_thickn_/2;
         
         // Drift
-        auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0, meshBracket_rad_, (drift_length_)/2, 0., 360.*deg);
+        auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., meshBracket_rad_, (drift_length_)/2, 0., 360.*deg);
         G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
         n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check(true).now();
         
  
         // EL gap
-        auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0, anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
+        auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
         G4double el_z = drift_z - drift_length_/2 - el_length_/2;
         n4::place(gas_el).in(vessel).at({0, 0, el_z}).check(true).now();
         //el_gen_  = new CylinderPointSampler2020(el_phys_);
@@ -162,7 +162,7 @@ G4PVPlacement* geometry() {
      }  else {
                
         //Cathode 
-        auto cathode = n4::volume<G4Tubs>("cathode", mesh_mat, 0, mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
+        auto cathode = n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
         G4double cathode_z = 4.505*mm + mesh_thickn_/2;  //cathode center from vessel center
         n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check(true).now();
         
@@ -176,14 +176,14 @@ G4PVPlacement* geometry() {
         G4double el_length_     = 10.775*mm + mesh_thickn_;
               
         // Drift
-        auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0, anodeBracket_rad_, (drift_length_)/2, 0., 360.*deg);
+        auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., anodeBracket_rad_, (drift_length_)/2, 0., 360.*deg);
         G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
         n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check(true).now();
         
  
         // EL gap
         //auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0, mesh_rad_, (el_length_)/2, 0., 360.*deg);
-        auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0, anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
+        auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
         G4double el_z = drift_z - drift_length_/2 - el_length_/2;
         n4::place(gas_el).in(vessel).at({0, 0, el_z}).check(true).now();
         //el_gen_  = new CylinderPointSampler2020(el_phys_);
@@ -192,7 +192,7 @@ G4PVPlacement* geometry() {
 
         
         // Gate
-        auto gate = n4::volume<G4Tubs>("gate", mesh_mat, 0, mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
+        auto gate = n4::volume<G4Tubs>("gate", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
         G4double gate_z = el_length_/2 - mesh_thickn_/2;
         n4::place(gate).in(gas_el).at({0, 0, gate_z}).check(true).now();
         
@@ -247,12 +247,12 @@ G4PVPlacement* geometry() {
         /////////////////////////
      
         //Quartz Window
-        auto quartz_window = n4::volume<G4Tubs>("QuartzWindow", quartz, 0., quartz_window_rad_, quartz_window_thickn_/2, 0, 360*deg);
+        auto quartz_window = n4::volume<G4Tubs>("QuartzWindow", quartz, 0., quartz_window_rad_, quartz_window_thickn_/2, 0., 360*deg);
         G4double quartz_window_z = 35.495*mm + quartz_window_thickn_/2 ;
         n4::place(quartz_window).in(vessel).at({0., 0., -quartz_window_z}).check(true).now();
         
         //Evaporated TPB
-        auto tpb_coating = n4::volume<G4Tubs>("CoatingTPB", tpb, 0., quartz_window_rad_, tpb_coating_thickn_/2, 0, 360*deg);
+        auto tpb_coating = n4::volume<G4Tubs>("CoatingTPB", tpb, 0., quartz_window_rad_, tpb_coating_thickn_/2, 0., 360*deg);
         G4double tpb_coating_z = quartz_window_z - quartz_window_thickn_/2 - tpb_coating_thickn_/2 ;
         n4::place(tpb_coating).in(vessel).at({0., 0., -tpb_coating_z}).check(true).now();
         
@@ -359,13 +359,13 @@ G4PVPlacement* geometry() {
        n4::place(logic_plate1_pmt).in(vessel).at({0., 0., -plate1_pmt_z}).check(true).now();
        
        // Steel plate attached where the peek holders are attached
-       auto plate0_pmt = n4::volume<G4Tubs>("PMTplateBottom0", steel, plate_pmt_rad_, plate_pmt_rad_+plate_pmt_thickn_, plate_pmt_length_/2, 0, 360*deg);
+       auto plate0_pmt = n4::volume<G4Tubs>("PMTplateBottom0", steel, plate_pmt_rad_, plate_pmt_rad_+plate_pmt_thickn_, plate_pmt_length_/2, 0., 360*deg);
        G4double plate0_pmt_z = plate1_pmt_z - plate_pmt_length_;
        n4::place(plate0_pmt).in(vessel).at({0., 0., -plate0_pmt_z}).check(true).now();
         
        // Upper steel plate at the pmt clad 
        G4double plateUp_pmt_rad_ = enclosure_pmt_rad_ + enclosure_pmt_thickn_;
-       auto plateUp_pmt = n4::volume<G4Tubs>("PMTplateUp", steel, plateUp_pmt_rad_, plateUp_pmt_rad_+plateUp_pmt_thickn_, plateUp_pmt_length_/2, 0, 360*deg);
+       auto plateUp_pmt = n4::volume<G4Tubs>("PMTplateUp", steel, plateUp_pmt_rad_, plateUp_pmt_rad_+plateUp_pmt_thickn_, plateUp_pmt_length_/2, 0., 360*deg);
        G4double plateUp_pmt_z = vessel_length_/2 - plateUp_pmt_length_/2 ;
        n4::place(plateUp_pmt).in(vessel).at({0., 0., -plateUp_pmt_z}).check(true).now();
        
