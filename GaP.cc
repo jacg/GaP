@@ -855,6 +855,7 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
                                                 //-> set((new n4::run_action) -> end(print_energy)));
                                                 //-> set((new n4::run_action) -> end(reset_eventCounter)));
     run_manager -> SetUserInitialization(new n4::geometry{geometry});
+    run_manager -> Initialize();
 
     n4::ui(argc, argv);
 }
