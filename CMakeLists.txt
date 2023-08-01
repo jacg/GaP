@@ -89,3 +89,15 @@ endforeach()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS GaP DESTINATION bin)
+
+#----------------------------------------------------------------------------
+# Link macro files directory to the build directory, i.e. the directory in which
+# we build ${EXE}. This is so that we can run the executable directly
+# because it relies on these macros being in the current working directory.
+#
+add_custom_command(
+  TARGET GaP POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+  ${CMAKE_SOURCE_DIR}/macs $<TARGET_FILE_DIR:GaP>/macs
+  COMMENT "Symlinking G4 macros directory" VERBATIM
+)
