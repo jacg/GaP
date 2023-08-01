@@ -91,14 +91,14 @@ G4PVPlacement* geometry() {
 
   //Cylinder, acting as the vessel
   auto vessel_steel = n4::volume<G4Tubs>("vessel_steel", steel, 0., vessel_out_rad_, vessel_out_length_/2 , 0., 360.*deg);
-  n4::place(vessel_steel).in(world).at({0, 0, 0}).check(true).now();
+  n4::place(vessel_steel).in(world).at({0, 0, 0}).check_overlaps().now();
 
   //Build inside detector
   //BuildTPC(gas_, mesh_mat, steel, peek, vacuum, quartz, tpb, vessel_steel);
 
 
   auto vessel = n4::volume<G4Tubs>("GasVessel", gas_, 0., vessel_rad_, vessel_length_/2 , 0., 360.*deg);
-  n4::place(vessel).in(vessel_steel).at({0, 0, 0}).check(true).now();
+  n4::place(vessel).in(vessel_steel).at({0, 0, 0}).check_overlaps().now();
 
 
   G4double cathode_z;
@@ -118,22 +118,22 @@ G4PVPlacement* geometry() {
     auto cathode= n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
     //G4double cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
     G4double cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
-    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check(true).now();
+    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check_overlaps().now();
 
     // Cathode Bracket
     auto cathBracket = n4::volume<G4Tubs>("CathodeBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
     //G4double cathBracket_z = 8.005*mm - meshBracket_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;
     G4double cathBracket_z = cathode_z;
-    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check(true).now();
+    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check_overlaps().now();
 
     //Cu rings
     auto ring= n4::volume<G4Tubs>("ring", Cu, ring_rad_int_, ring_rad_out_, (ring_thickn_)/2, 0., 360.*deg);
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_/2}).copy_no(0).check(true).now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_ - d - ring_thickn_/2}).copy_no(1).check(true).now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 2*ring_thickn_ - 2*d - ring_thickn_/2}).copy_no(2).check(true).now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 3*ring_thickn_ - 3*d - ring_thickn_/2}).copy_no(3).check(true).now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 4*ring_thickn_ - 4*d - ring_thickn_/2}).copy_no(4).check(true).now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 5*ring_thickn_ - 5*d - ring_thickn_/2}).copy_no(5).check(true).now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_/2}).copy_no(0).check_overlaps().now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_ - d - ring_thickn_/2}).copy_no(1).check_overlaps().now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 2*ring_thickn_ - 2*d - ring_thickn_/2}).copy_no(2).check_overlaps().now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 3*ring_thickn_ - 3*d - ring_thickn_/2}).copy_no(3).check_overlaps().now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 4*ring_thickn_ - 4*d - ring_thickn_/2}).copy_no(4).check_overlaps().now();
+    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 5*ring_thickn_ - 5*d - ring_thickn_/2}).copy_no(5).check_overlaps().now();
 
     // Source box
     G4double source_box_width = 100.*mm;
@@ -141,7 +141,7 @@ G4PVPlacement* geometry() {
     auto source_box = n4::volume<G4Box>("source_box", steel, source_box_width/2, source_box_width/2, source_box_lenght_/2);
     G4double source_box_z = cathode_z + 81.64*mm + source_box_lenght_/2;
     //G4double source_box_z = cathode_z ;
-    n4::place(source_box).in(vessel).at({0., 0., source_box_z}).check(true).now();
+    n4::place(source_box).in(vessel).at({0., 0., source_box_z}).check_overlaps().now();
 
     //Gas
     G4double drift_length_  = 96.*mm - meshBracket_thickn_ ;
@@ -150,12 +150,12 @@ G4PVPlacement* geometry() {
     // Drift
     auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., meshBracket_rad_, (drift_length_)/2, 0., 360.*deg);
     G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check(true).now();
+    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check_overlaps().now();
 
     // EL gap
     auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
     G4double el_z = drift_z - drift_length_/2 - el_length_/2;
-    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check(true).now();
+    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
     //el_gen_  = new CylinderPointSampler2020(el_phys_);
 
   }  else {
@@ -163,12 +163,12 @@ G4PVPlacement* geometry() {
     //Cathode
     auto cathode = n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
     G4double cathode_z = 4.505*mm + mesh_thickn_/2;  //cathode center from vessel center
-    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check(true).now();
+    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check_overlaps().now();
 
     //Cathode Bracket
     auto cathBracket = n4::volume<G4Tubs>("CathodeBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
     G4double cathBracket_z = 8.005*mm - meshBracket_thickn_/2;
-    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check(true).now();
+    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check_overlaps().now();
 
     //Gas
     G4double drift_length_  = 19.825*mm - mesh_thickn_ ;
@@ -177,26 +177,26 @@ G4PVPlacement* geometry() {
     // Drift
     auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., anodeBracket_rad_, (drift_length_)/2, 0., 360.*deg);
     G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check(true).now();
+    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check_overlaps().now();
 
 
     // EL gap
     //auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0, mesh_rad_, (el_length_)/2, 0., 360.*deg);
     auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
     G4double el_z = drift_z - drift_length_/2 - el_length_/2;
-    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check(true).now();
+    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
     //el_gen_  = new CylinderPointSampler2020(el_phys_);
   }
 
   // Gate
   auto gate = n4::volume<G4Tubs>("gate", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
   G4double gate_z = el_length_/2 - mesh_thickn_/2;
-  n4::place(gate).in(gas_el).at({0, 0, gate_z}).check(true).now();
+  n4::place(gate).in(gas_el).at({0, 0, gate_z}).check_overlaps().now();
 
   // Gate Bracket
   auto gateBracket= n4::volume<G4Tubs>("gateBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
   G4double gateBracket_z = 12.745*mm + meshBracket_thickn_/2;
-  n4::place(gateBracket).in(vessel).at({0, 0, -gateBracket_z}).check(true).now();
+  n4::place(gateBracket).in(vessel).at({0, 0, -gateBracket_z}).check_overlaps().now();
 
   G4RotationMatrix* Rot45 = new G4RotationMatrix();
   Rot45->rotateZ(45*deg);
@@ -210,12 +210,12 @@ G4PVPlacement* geometry() {
   //Anode
   auto anode = n4::volume<G4Tubs>("Anode", mesh_mat, 0.,  mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
   G4double anode_z = - el_length_/2 + mesh_thickn_/2;
-  n4::place(anode).in(gas_el).at({0., 0., anode_z}).check(true).now();
+  n4::place(anode).in(gas_el).at({0., 0., anode_z}).check_overlaps().now();
 
   //Anode Bracket
   auto anodeBracket = n4::volume<G4Tubs>("AnodeBracket", steel, mesh_rad_, anodeBracket_rad_, (anodeBracket_thickn_)/2, 0., 360.*deg);
   G4double anodeBracket_z = gateBracket_z + meshBracket_thickn_/2 + 3.775*mm + anodeBracket_thickn_/2;
-  n4::place(anodeBracket).in(vessel).at({0., 0., -anodeBracket_z}).check(true).now();
+  n4::place(anodeBracket).in(vessel).at({0., 0., -anodeBracket_z}).check_overlaps().now();
 
   // Peek Anode Holder
   G4double anodeHolder_length_  = 30        *mm;
@@ -235,10 +235,10 @@ G4PVPlacement* geometry() {
   G4LogicalVolume *logic_anodeHolder = new G4LogicalVolume(solidSub_anodeHolder, peek, "AnodeHolder");
 
   G4double anodeHolder_z = 29.495*mm + anodeHolder_length_/2;
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check(true).now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot135).at({0., 0., -anodeHolder_z}).copy_no(1).check(true).now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_45).at({0., 0., -anodeHolder_z}).copy_no(2).check(true).now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_135).at({0., 0., -anodeHolder_z}).copy_no(3).check(true).now();
+  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
+  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot135).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
+  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_45).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
+  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_135).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
 
 
   /////////////////////////
@@ -246,12 +246,12 @@ G4PVPlacement* geometry() {
   //Quartz Window
   auto quartz_window = n4::volume<G4Tubs>("QuartzWindow", quartz, 0., quartz_window_rad_, quartz_window_thickn_/2, 0., 360*deg);
   G4double quartz_window_z = 35.495*mm + quartz_window_thickn_/2 ;
-  n4::place(quartz_window).in(vessel).at({0., 0., -quartz_window_z}).check(true).now();
+  n4::place(quartz_window).in(vessel).at({0., 0., -quartz_window_z}).check_overlaps().now();
 
   //Evaporated TPB
   auto tpb_coating = n4::volume<G4Tubs>("CoatingTPB", tpb, 0., quartz_window_rad_, tpb_coating_thickn_/2, 0., 360*deg);
   G4double tpb_coating_z = quartz_window_z - quartz_window_thickn_/2 - tpb_coating_thickn_/2 ;
-  n4::place(tpb_coating).in(vessel).at({0., 0., -tpb_coating_z}).check(true).now();
+  n4::place(tpb_coating).in(vessel).at({0., 0., -tpb_coating_z}).check_overlaps().now();
 
   // Peek Quartz Window Holder
   G4double windowHolder_angle_   = 10      *deg;
@@ -274,10 +274,10 @@ G4PVPlacement* geometry() {
   G4LogicalVolume *logic_windowHolder = new G4LogicalVolume(solidUni_windowHolder, peek, "QuartzWindowHolder");
 
   G4double quartz_windowHolder_z = quartz_window_z - quartz_window_thickn_/2 -  windowHolder_length1_/2;
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolder_z}).copy_no(0).check(true).now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolder_z}).copy_no(1).check(true).now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolder_z}).copy_no(2).check(true).now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolder_z}).copy_no(3).check(true).now();
+  n4::place(logic_windowHolder).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolder_z}).copy_no(0).check_overlaps().now();
+  n4::place(logic_windowHolder).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolder_z}).copy_no(1).check_overlaps().now();
+  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolder_z}).copy_no(2).check_overlaps().now();
+  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolder_z}).copy_no(3).check_overlaps().now();
 
 
   G4double windowHolderTop_length1_ = 3.  *mm;
@@ -294,10 +294,10 @@ G4PVPlacement* geometry() {
   G4LogicalVolume *logic_windowHolderTop = new G4LogicalVolume(solidUni_windowHolderTop, peek, "QuartzWindowHolderTop");
 
   G4double quartz_windowHolderTop_z = quartz_window_z - quartz_window_thickn_/2 +  windowHolderTop_length1_/2;
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(0).check(true).now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(2).check(true).now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(3).check(true).now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(4).check(true).now();
+  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(0).check_overlaps().now();
+  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(2).check_overlaps().now();
+  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(3).check_overlaps().now();
+  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(4).check_overlaps().now();
 
   //Build PMT
   //G4double pmt_length_ = pmt_.Length();
@@ -343,27 +343,27 @@ G4PVPlacement* geometry() {
   }
 
   G4LogicalVolume *logic_enclosure_pmt = new G4LogicalVolume(solid_enclosure_pmt, steel, "EnclosurePMT");
-  n4::place(logic_enclosure_pmt).in(vessel).at({0., 0., -enclosure_pmt_z}).check(true).now();
+  n4::place(logic_enclosure_pmt).in(vessel).at({0., 0., -enclosure_pmt_z}).check_overlaps().now();
 
   G4LogicalVolume *logic_enclosurevac_pmt = new G4LogicalVolume(solid_enclosurevac_pmt, vacuum, "EnclosureVacPMT");
-  n4::place(logic_enclosurevac_pmt).in(logic_enclosure_pmt).at({0., 0., enclosure_pmt_z - enclosurevac_pmt_z}).check(true).now();
+  n4::place(logic_enclosurevac_pmt).in(logic_enclosure_pmt).at({0., 0., enclosure_pmt_z - enclosurevac_pmt_z}).check_overlaps().now();
 
   G4LogicalVolume *logic_pmtHolder = new G4LogicalVolume(solid_pmtHolder, steel, "PMTHolder");
-  n4::place(logic_pmtHolder).in(logic_enclosurevac_pmt).at({0., 0, pmtHolder_z}).check(true).now();
+  n4::place(logic_pmtHolder).in(logic_enclosurevac_pmt).at({0., 0, pmtHolder_z}).check_overlaps().now();
 
   G4LogicalVolume *logic_plate1_pmt = new G4LogicalVolume(solid_plate1_pmt, steel, "PMTplateBottom1");
-  n4::place(logic_plate1_pmt).in(vessel).at({0., 0., -plate1_pmt_z}).check(true).now();
+  n4::place(logic_plate1_pmt).in(vessel).at({0., 0., -plate1_pmt_z}).check_overlaps().now();
 
   // Steel plate attached where the peek holders are attached
   auto plate0_pmt = n4::volume<G4Tubs>("PMTplateBottom0", steel, plate_pmt_rad_, plate_pmt_rad_+plate_pmt_thickn_, plate_pmt_length_/2, 0., 360*deg);
   G4double plate0_pmt_z = plate1_pmt_z - plate_pmt_length_;
-  n4::place(plate0_pmt).in(vessel).at({0., 0., -plate0_pmt_z}).check(true).now();
+  n4::place(plate0_pmt).in(vessel).at({0., 0., -plate0_pmt_z}).check_overlaps().now();
 
   // Upper steel plate at the pmt clad
   G4double plateUp_pmt_rad_ = enclosure_pmt_rad_ + enclosure_pmt_thickn_;
   auto plateUp_pmt = n4::volume<G4Tubs>("PMTplateUp", steel, plateUp_pmt_rad_, plateUp_pmt_rad_+plateUp_pmt_thickn_, plateUp_pmt_length_/2, 0., 360*deg);
   G4double plateUp_pmt_z = vessel_length_/2 - plateUp_pmt_length_/2 ;
-  n4::place(plateUp_pmt).in(vessel).at({0., 0., -plateUp_pmt_z}).check(true).now();
+  n4::place(plateUp_pmt).in(vessel).at({0., 0., -plateUp_pmt_z}).check_overlaps().now();
 
   if (model_new_ == 1) {
 
@@ -383,10 +383,10 @@ G4PVPlacement* geometry() {
     //G4double A_xy = plate_pmt_rad_+plate_pmt_thickn_ - A_length_/2;
     //G4double A_z = plate0_pmt_z + plate_pmt_length_/2 - A_length_/2;
 
-    //n4::place(logic_A).in(vessel).rotate(*Rot_45).at({-A_xy, -A_xy, -A_z}).copy_no(0).check(true).now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot_135).at({-A_xy, A_xy, -A_z }).copy_no(1).check(true).now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot45).at({A_xy, -A_xy, -A_z}).copy_no(2).check(true).now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot135).at({A_xy, A_xy, -A_z}).copy_no(3).check(true).now();
+    //n4::place(logic_A).in(vessel).rotate(*Rot_45).at({-A_xy, -A_xy, -A_z}).copy_no(0).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate(*Rot_135).at({-A_xy, A_xy, -A_z }).copy_no(1).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate(*Rot45).at({A_xy, -A_xy, -A_z}).copy_no(2).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate(*Rot135).at({A_xy, A_xy, -A_z}).copy_no(3).check_overlaps().now();
   } else {
 
     // Peek Mesh Holder (holds cathode and gate)
@@ -409,10 +409,10 @@ G4PVPlacement* geometry() {
     G4double meshHolder_y = 5*mm + meshBracket_rad_ * sin(45*deg);
     G4double meshHolder_z = -13.005*mm + meshHolder_length_/2 ;
 
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_45).at({-meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(0).check(true).now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_135).at({-meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(1).check(true).now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot45).at({meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(2).check(true).now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot135).at({meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(3).check(true).now();
+    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_45).at({-meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(0).check_overlaps().now();
+    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_135).at({-meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(1).check_overlaps().now();
+    n4::place(logic_meshHolder).in(vessel).rotate(*Rot45).at({meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(2).check_overlaps().now();
+    n4::place(logic_meshHolder).in(vessel).rotate(*Rot135).at({meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(3).check_overlaps().now();
 
     //Steel Bar joining Mesh holder and PMT clad
     G4double meshHolderBar_rad_     = 9./2   *mm;
@@ -421,10 +421,10 @@ G4PVPlacement* geometry() {
     auto meshHolderBar = n4::volume<G4Tubs>("MeshHolderBar", steel, 0., meshHolderBar_rad_, (meshHolderBar_length_)/2, 0., 360.*deg);
     G4double meshHolderBar_xy = 73.769*mm;
     G4double meshHolderBar_z  = meshHolder_z + meshHolder_length_/2 + meshHolderBar_length_/2 ;
-    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(1).check(true).now();
-    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(2).check(true).now();
-    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(3).check(true).now();
-    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(4).check(true).now();
+    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(1).check_overlaps().now();
+    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(2).check_overlaps().now();
+    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(3).check_overlaps().now();
+    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(4).check_overlaps().now();
   }
   return n4::place(world).now();
 }
