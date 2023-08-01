@@ -794,6 +794,11 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
     file.close();
     };
 
+    auto delete_file_short_and_long = [&delete_file_short, &delete_file_long] (auto run) {
+        delete_file_short(run);
+        delete_file_long(run);
+    };
+
     auto delete_file_short_double = [& filename_event_1, & filename_event_2](G4Run const* run){
 
     std::ofstream file1(filename_event_1, std::ios::out);
@@ -851,7 +856,7 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
                                                 //-> set((new n4::event_action) -> begin(reset_energy))
                                                 //-> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy_and_trackIDVector))
                                                 -> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
-                                                -> set((new n4::run_action) -> begin(delete_file_long)));
+                                                -> set((new n4::run_action) -> begin(delete_file_short_and_long)));
                                                 //-> set((new n4::run_action) -> end(print_energy)));
                                                 //-> set((new n4::run_action) -> end(reset_eventCounter)));
     run_manager -> SetUserInitialization(new n4::geometry{geometry});
