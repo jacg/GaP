@@ -48,8 +48,6 @@ void generate_gammas(G4Event* event, G4ThreeVector position, G4double time, G4do
     auto vertex =      new G4PrimaryVertex(position, time);
     vertex -> SetPrimary(new G4PrimaryParticle(gamma,  p.x(),  p.y(),  p.z()));
     event -> AddPrimaryVertex(vertex);
-    
-    delete gamma;
 }
 
 void generate_electrons(G4Event* event, G4ThreeVector position, G4double time) {
