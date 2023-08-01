@@ -1,5 +1,6 @@
 #include "nain4.hh"
 #include "g4-mandatory.hh"
+#include "n4_ui.hh"
 #include "geometry.hh"
 #include "kr83.hh"
 
@@ -854,28 +855,6 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
                                                 //-> set((new n4::run_action) -> end(print_energy)));
                                                 //-> set((new n4::run_action) -> end(reset_eventCounter)));
     run_manager -> SetUserInitialization(new n4::geometry{geometry});
-     
-    // Initialize visualization
-    std::unique_ptr<G4VisManager> visManager = std::make_unique<G4VisExecutive>();
-    // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
-    // G4VisManager* visManager = new G4VisExecutive("Quiet");
-    visManager -> Initialize();
 
-    // Get the pointer to the User Interface manager
-    G4UImanager* UImanager = G4UImanager::GetUIpointer();
-    std::unique_ptr<G4UIExecutive> ui;
-    if ( argc == 1 ) { ui = std::make_unique<G4UIExecutive>(argc, argv); }
-    if ( ! ui ) {
-        // batch mode
-        G4String command = "/control/execute ";
-        G4String fileName = argv[1];
-        UImanager->ApplyCommand(command+fileName);
-    } else {
-        // interactive mode
-        UImanager->ApplyCommand("/control/execute init_vis.mac");
-        //UImanager->ApplyCommand("/control/execute decay_limits.mac");
-        ui->SessionStart();
-    }
-
+    n4::ui(argc, argv);
 }
-

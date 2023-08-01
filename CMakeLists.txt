@@ -68,7 +68,7 @@ set(DOUBLESIPM_SCRIPTS
   init_vis.mac
   # run1.mac
   # run2.mac
-  vis.mac
+  #vis.mac
 )
 
 foreach(_script ${DOUBLESIPM_SCRIPTS})
