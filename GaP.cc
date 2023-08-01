@@ -827,6 +827,7 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
         eventCounter = 0;
     };
 
+    n4::silence hush{G4cout};
 
     G4int verbosity = 0;
     auto physics_list = new FTFP_BERT{verbosity};
