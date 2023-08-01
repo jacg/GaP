@@ -1,0 +1,53 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+EnergyDepositTotal_Am241_10bar_sum_withTransportation.txt           
+EnergyDepositTotal_Am241_10bar_sum_withoutTransportation.txt        
+EnergyDepositTotal_Am241_10bar_sum_withoutTransportation_test.txt   
+EnergyDepositTotal_Am241_10bar_sum_withoutTransportation_test2.txt  
+EnergyDepositTotal_Am241_10bar_withoutTransportation_test2.txt      
+EnergyDepositTotal_Co57_10bar_sum_justCompton.txt                   
+EnergyDepositTotal_Co57_10bar_sum_withTransportation.txt            
+EnergyDepositTotal_Co57_10bar_sum_withoutCompton.txt                
+EnergyDepositTotal_Co57_10bar_sum_withoutTransportation.txt         
+EnergyDepositTotal_Co57_10bar_sum_withoutTransportation2.0.txt      
+EnergyDepositTotal_Co57_8bar_sum_withTransportation.txt             
+EnergyDepositTotal_Co57_8bar_sum_withoutTransportation.txt          
+o_o
+EnergyDepositTotal_Co57_transportationEvent.txt                     
+old-code.txt
+EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation.txt        
+oldFiles
+EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation_G4.txt
+OoO
+build
