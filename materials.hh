@@ -11,7 +11,7 @@ G4Material* quartz_with_properties();
 G4Material* TPB_with_properties();
 G4Material* CopyMaterial(G4Material* original, const G4String& newname);
 G4Material* FakeDielectric_with_properties(G4Material* model_mat, G4String name,
-									  G4double pressure,
+                                      G4double pressure,
                                       G4double temperature,
                                       G4double transparency,
                                       G4double thickness,

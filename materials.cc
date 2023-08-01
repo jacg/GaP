@@ -78,7 +78,7 @@ G4Material* CopyMaterial(G4Material* original, const G4String& newname) {
 ////////////////////////////////////////////////////////////////////////
 
 G4Material* FakeDielectric_with_properties(G4Material* model_mat, G4String name,
-								      G4double pressure,
+                      G4double pressure,
                                       G4double temperature,
                                       G4double transparency,
                                       G4double thickness,
@@ -101,13 +101,13 @@ G4Material* FakeDielectric_with_properties(G4Material* model_mat, G4String name,
 ////////////////////////////////////////////////////////////////////////
  
  G4Material* GAr_with_properties(G4double pressure, G4double temperature, G4double sc_yield, G4double e_lifetime){
-	
+
   G4double density = 1.60279 * (pressure / bar) * (300 * kelvin) / temperature * kg/m3; // 1.60729 is the pressure at 1 bar and 300K
-	
+
   auto GAr = n4::material_from_elements_N("GAr", density, kStateGas,{{"Ar", 1}});
   GAr -> SetMaterialPropertiesTable(GAr_properties(sc_yield, e_lifetime)) ;
   return GAr; 
-	 
+
 }
 
 ////////////////////////////////////////////////////////////////////////

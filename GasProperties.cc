@@ -59,7 +59,7 @@ G4double XenonRefractiveIndex(G4double energy, G4double density)
     //      G4String msg = "Non-physical refractive index for energy "
     // + bhep::to_string(energy) + " eV. Use n=1 instead.";
     //      G4Exception("[XenonProperties]", "RefractiveIndex()",
-    // 	  JustWarning, msg);
+    //      JustWarning, msg);
     n2 = 1.;
   }
 

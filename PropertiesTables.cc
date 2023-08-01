@@ -24,8 +24,8 @@ G4double noAbsLength_ = 1.e8  * m;
 ////////////////////////////////////////////////////////////////////////
 
 G4MaterialPropertiesTable* peek_properties(){
-	
-	return n4::material_properties()
+
+    return n4::material_properties()
     .done();   
     
 }
@@ -36,7 +36,7 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
                                G4int    sc_yield,
                                G4double e_lifetime){
    
-	// REFRACTIVE INDEX
+    // REFRACTIVE INDEX
     const G4int ri_entries = 200;
     G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
     
@@ -48,7 +48,7 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
     G4double density = GXeDensity(pressure);
     std::vector<G4double> rIndex;
     for (int i=0; i<ri_entries; i++) {
-	  G4double ri = XenonRefractiveIndex(ri_energy[i], density);
+      G4double ri = XenonRefractiveIndex(ri_energy[i], density);
       rIndex.push_back(ri);
       // G4cout << "* GXe rIndex:  " << std::setw(7)
       //        << ri_energy[i]/eV << " eV -> " << rIndex[i] << G4endl;
@@ -76,21 +76,21 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
     //}    
     
     
-	return n4::material_properties()
-		.add("RINDEX", ri_energy, rIndex)
-		.add("ABSLENGTH", abs_energy, absLength) 
-		.add("SCINTILLATIONCOMPONENT1", sc_energy, intensity) 
-		.add("SCINTILLATIONCOMPONENT2", sc_energy, intensity) 
-		.add("ELSPECTRUM", sc_energy, intensity, 1)   //Pq1?
-		.add("SCINTILLATIONYIELD", sc_yield)  
-		.add("RESOLUTIONSCALE", 1.0) 
-		.add("SCINTILLATIONTIMECONSTANT1", 4.5 * ns) 
-		.add("SCINTILLATIONTIMECONSTANT2", 100. * ns) 
-		.add("SCINTILLATIONYIELD1", .1) 
-		.add("SCINTILLATIONYIELD2", .9) 
-		.add("ATTACHMENT", e_lifetime, 1) 
-		.done();    
-	
+    return n4::material_properties()
+        .add("RINDEX", ri_energy, rIndex)
+        .add("ABSLENGTH", abs_energy, absLength)
+        .add("SCINTILLATIONCOMPONENT1", sc_energy, intensity)
+        .add("SCINTILLATIONCOMPONENT2", sc_energy, intensity)
+        .add("ELSPECTRUM", sc_energy, intensity, 1)   //Pq1?
+        .add("SCINTILLATIONYIELD", sc_yield)
+        .add("RESOLUTIONSCALE", 1.0)
+        .add("SCINTILLATIONTIMECONSTANT1", 4.5 * ns)
+        .add("SCINTILLATIONTIMECONSTANT2", 100. * ns)
+        .add("SCINTILLATIONYIELD1", .1)
+        .add("SCINTILLATIONYIELD2", .9)
+        .add("ATTACHMENT", e_lifetime, 1)
+        .done();
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -135,8 +135,8 @@ G4MaterialPropertiesTable* quartz_properties(){
     // G4cout << "* FusedSilica rIndex:  " << std::setw(5) << ri_energy[i]/eV
     //       << " eV -> " << rIndex[i] << G4endl;
   }
-	
-	
+
+
   // ABSORPTION LENGTH
   std::vector<G4double> abs_energy = {
     optPhotMinE_,  6.46499 * eV,
@@ -163,8 +163,8 @@ G4MaterialPropertiesTable* quartz_properties(){
   };
   
    return n4::material_properties()
-	.add("RINDEX", ri_energy, rIndex)
-	.add("ABSLENGTH", abs_energy, absLength)
+    .add("RINDEX", ri_energy, rIndex)
+    .add("ABSLENGTH", abs_energy, absLength)
     .done();
 
 }
@@ -221,7 +221,7 @@ G4MaterialPropertiesTable* TPB_properties(){
    const G4int WLS_emi_entries = 120;
    std::vector<G4double> WLS_emi_energy;
    for (int i=0; i<WLS_emi_entries; i++)
-	  WLS_emi_energy.push_back(2.06 * eV + 0.01 * i * eV);
+      WLS_emi_energy.push_back(2.06 * eV + 0.01 * i * eV);
 
       std::vector<G4double> WLS_emiSpectrum;
       G4double A      = 0.782;
@@ -243,12 +243,12 @@ G4MaterialPropertiesTable* TPB_properties(){
     };
    
   return n4::material_properties()
-	.add("RINDEX", rIndex_energies, TPB_rIndex)
-	.add("ABSLENGTH", abs_energy, abs_energy)
-	.add("WLSABSLENGTH", WLS_abs_energy, WLS_absLength)
-	.add("WLSCOMPONENT", WLS_emi_energy, WLS_emiSpectrum)
-	.add("WLSTIMECONSTANT",  1.2 * ns)  // WLS Delay
-	.add("WLSMEANNUMBERPHOTONS",  0.65)      // WLS Quantum Efficiency
+    .add("RINDEX", rIndex_energies, TPB_rIndex)
+    .add("ABSLENGTH", abs_energy, abs_energy)
+    .add("WLSABSLENGTH", WLS_abs_energy, WLS_absLength)
+    .add("WLSCOMPONENT", WLS_emi_energy, WLS_emiSpectrum)
+    .add("WLSTIMECONSTANT",  1.2 * ns)  // WLS Delay
+    .add("WLSMEANNUMBERPHOTONS",  0.65)      // WLS Quantum Efficiency
     // According to the paper, the QE of TPB depends on the incident wavelength.
     // As Geant4 doesn't allow this possibility, it is set to the value corresponding
     // to Xe scintillation spectrum peak.
@@ -282,21 +282,21 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
    return xenon_pt;
    
    //return n4::material_properties()
-	//.add("ABSLENGTH", abs_energy, absLength)
-	//.add("WORK_FUNCTION", stainless_wf) //TRUE NEEDED
-	//.add("OP_PHOTOELECTRIC_PROBABILITY", photoe_p, true) //TRUE NEEDED
-	
-	
-	//.add("RINDEX", prop_vec->GetEnergyVector(), prop_vec->GetPropertyVector() )
-	//.add("SCINTILLATIONCOMPONENT1", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT1")) 
-	//.add("SCINTILLATIONCOMPONENT2", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT2")) 
-	//.add("SCINTILLATIONYIELD", xenon_pt->GetProperty("SCINTILLATIONYIELD")) 
-	//.add("RESOLUTIONSCALE", xenon_pt->GetProperty("RESOLUTIONSCALE")) 
-	//.add("SCINTILLATIONTIMECONSTANT1", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT1")) 
-	//.add("SCINTILLATIONTIMECONSTANT2", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT2")) 
-	//.add("SCINTILLATIONYIELD1", xenon_pt->GetProperty("SCINTILLATIONYIELD1")) 
-	//.add("SCINTILLATIONYIELD2", xenon_pt->GetProperty("SCINTILLATIONYIELD2")) 
-	//.add("ATTACHMENT", xenon_pt->GetProperty("ATTACHMENT"),1)  //TRUE NEEDED
+    //.add("ABSLENGTH", abs_energy, absLength)
+    //.add("WORK_FUNCTION", stainless_wf) //TRUE NEEDED
+    //.add("OP_PHOTOELECTRIC_PROBABILITY", photoe_p, true) //TRUE NEEDED
+
+
+    //.add("RINDEX", prop_vec->GetEnergyVector(), prop_vec->GetPropertyVector() )
+    //.add("SCINTILLATIONCOMPONENT1", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT1"))
+    //.add("SCINTILLATIONCOMPONENT2", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT2"))
+    //.add("SCINTILLATIONYIELD", xenon_pt->GetProperty("SCINTILLATIONYIELD"))
+    //.add("RESOLUTIONSCALE", xenon_pt->GetProperty("RESOLUTIONSCALE"))
+    //.add("SCINTILLATIONTIMECONSTANT1", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT1"))
+    //.add("SCINTILLATIONTIMECONSTANT2", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT2"))
+    //.add("SCINTILLATIONYIELD1", xenon_pt->GetProperty("SCINTILLATIONYIELD1"))
+    //.add("SCINTILLATIONYIELD2", xenon_pt->GetProperty("SCINTILLATIONYIELD2"))
+    //.add("ATTACHMENT", xenon_pt->GetProperty("ATTACHMENT"),1)  //TRUE NEEDED
     //.done();    
   
 }
@@ -304,10 +304,10 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
 ////////////////////////////////////////////////////////////////////////
 
 G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime){
-	
-	//e_lifetime = 1000.*ms;
-	
-	// An argon gas proportional scintillation counter with UV avalanche photodiode scintillation
+
+    //e_lifetime = 1000.*ms;
+
+    // An argon gas proportional scintillation counter with UV avalanche photodiode scintillation
     // readout C.M.B. Monteiro, J.A.M. Lopes, P.C.P.S. Simoes, J.M.F. dos Santos, C.A.N. Conde
  
     // REFRACTIVE INDEX
@@ -316,10 +316,10 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
     
     
     std::vector<G4double> abs_energy_Ar;
-	std::vector<G4double> absLength_Ar;
-	std::vector<G4double> sc_energy_Ar;
-	std::vector<G4double> intensity_Ar;
-	const G4int sc_entries = 380;
+    std::vector<G4double> absLength_Ar;
+    std::vector<G4double> sc_energy_Ar;
+    std::vector<G4double> intensity_Ar;
+    const G4int sc_entries = 380;
 
 
     std::vector<G4double> ri_energy;
@@ -366,21 +366,21 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
       
     }
     
-	return n4::material_properties()
-		.add("RINDEX", ri_energy, rIndex)
-		.add("ABSLENGTH", abs_energy_Ar, absLength_Ar) 
-		.add("SCINTILLATIONCOMPONENT1", sc_energy_Ar, intensity_Ar) 
-		.add("SCINTILLATIONCOMPONENT2", sc_energy_Ar, intensity_Ar) 
-	    .add("ELSPECTRUM",  sc_energy_Ar, intensity_Ar, sc_entries) 
-		.add("SCINTILLATIONYIELD", sc_yield) 
-		.add("SCINTILLATIONTIMECONSTANT1",6.*ns)  // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-	    .add("SCINTILLATIONTIMECONSTANT2", 3480.*ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-		.add("SCINTILLATIONYIELD1", .136) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y 
-		.add("SCINTILLATIONYIELD2", .864) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-		.add("RESOLUTIONSCALE", 1.0) 
-		.add("ATTACHMENT", e_lifetime, 1)
+    return n4::material_properties()
+        .add("RINDEX", ri_energy, rIndex)
+        .add("ABSLENGTH", abs_energy_Ar, absLength_Ar)
+        .add("SCINTILLATIONCOMPONENT1", sc_energy_Ar, intensity_Ar)
+        .add("SCINTILLATIONCOMPONENT2", sc_energy_Ar, intensity_Ar)
+        .add("ELSPECTRUM",  sc_energy_Ar, intensity_Ar, sc_entries)
+        .add("SCINTILLATIONYIELD", sc_yield)
+        .add("SCINTILLATIONTIMECONSTANT1",6.*ns)  // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+        .add("SCINTILLATIONTIMECONSTANT2", 3480.*ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+        .add("SCINTILLATIONYIELD1", .136) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+        .add("SCINTILLATIONYIELD2", .864) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+        .add("RESOLUTIONSCALE", 1.0)
+        .add("ATTACHMENT", e_lifetime, 1)
     .done();   
-	
+
 }   
 
 ///////////////////////////////////////////////////////////////////////

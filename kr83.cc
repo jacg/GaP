@@ -11,23 +11,23 @@
 #include "kr83.hh"
 
 G4ThreeVector random_generator_inside_drift(){
-	
-	G4double cathode_z = 90.1125*mm - 15.745*mm;
-	G4double mesh_thickn_       = 0.075   *mm;
-	G4double meshBracket_thickn_   = 6.      *mm;
-	G4double drift_length_  = 96.*mm - meshBracket_thickn_ ;
-	G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-	G4double meshBracket_rad_      = 180./2  *mm;
-	
-	G4double r = G4RandFlat::shoot( 0., meshBracket_rad_);
-	G4double angle = G4RandFlat::shoot( 0., 2*M_PI);
-	G4double z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-	
+
+    G4double cathode_z = 90.1125*mm - 15.745*mm;
+    G4double mesh_thickn_       = 0.075   *mm;
+    G4double meshBracket_thickn_   = 6.      *mm;
+    G4double drift_length_  = 96.*mm - meshBracket_thickn_ ;
+    G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    G4double meshBracket_rad_      = 180./2  *mm;
+
+    G4double r = G4RandFlat::shoot( 0., meshBracket_rad_);
+    G4double angle = G4RandFlat::shoot( 0., 2*M_PI);
+    G4double z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
+
     G4double pos_x = r * cos(angle);
     G4double pos_y = r * sin(angle);
     G4double pos_z = z;
    
-	G4ThreeVector position = G4ThreeVector(pos_x, pos_y, pos_z);
+    G4ThreeVector position = G4ThreeVector(pos_x, pos_y, pos_z);
     
     return position;
 }
@@ -87,8 +87,8 @@ void kr83_generator(G4Event* event, G4double energy_32_ , G4double energy_9_ , G
     auto particle_defelectron_ = nain4::find_particle("e-");
       
     // Ask the geometry to generate a position for the particle
-	G4ThreeVector position = random_generator_inside_drift();
-	
+    G4ThreeVector position = random_generator_inside_drift();
+
    // First transition (32 kEv) Always one electron. Set it's kinetic energy.
    // Decide if we emit an X-ray..
    const double probXRay = G4UniformRand();
@@ -152,17 +152,17 @@ void kr83_generator(G4Event* event, G4double energy_32_ , G4double energy_9_ , G
     
     G4PrimaryParticle* particle3;
 
-	if (probGam9 < probGamma_9_) { // a soft gamma (i.e., an X-ray.. )
-		energy = energy_9_ + mass;
-		pmod = std::sqrt(energy * energy - mass * mass);
-		G4ThreeVector momentum_dir9 = G4RandomDirection();
-		px = pmod * momentum_dir9.x();
-		py = pmod * momentum_dir9.y();
-		pz = pmod * momentum_dir9.z();
-		particle3 = new G4PrimaryParticle(particle_defelectron_);
-		particle3->SetMomentum(px, py, pz);
-		particle3->SetProperTime(lifetime_9_ * G4RandExponential::shoot());
-		vertex->SetPrimary(particle3);
+    if (probGam9 < probGamma_9_) { // a soft gamma (i.e., an X-ray.. )
+        energy = energy_9_ + mass;
+        pmod = std::sqrt(energy * energy - mass * mass);
+        G4ThreeVector momentum_dir9 = G4RandomDirection();
+        px = pmod * momentum_dir9.x();
+        py = pmod * momentum_dir9.y();
+        pz = pmod * momentum_dir9.z();
+        particle3 = new G4PrimaryParticle(particle_defelectron_);
+        particle3->SetMomentum(px, py, pz);
+        particle3->SetProperTime(lifetime_9_ * G4RandExponential::shoot());
+        vertex->SetPrimary(particle3);
   } else { // a soft electron. (Electron Conversion )
      // Calculate cartesian components of momentum for the most energetic EC
       energy = energy_9_ + mass;
