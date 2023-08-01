@@ -81,14 +81,14 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
         .add("ABSLENGTH", abs_energy, absLength)
         .add("SCINTILLATIONCOMPONENT1", sc_energy, intensity)
         .add("SCINTILLATIONCOMPONENT2", sc_energy, intensity)
-        .add("ELSPECTRUM", sc_energy, intensity, 1)   //Pq1?
+        .NEW("ELSPECTRUM", sc_energy, intensity)
         .add("SCINTILLATIONYIELD", sc_yield)
         .add("RESOLUTIONSCALE", 1.0)
         .add("SCINTILLATIONTIMECONSTANT1", 4.5 * ns)
         .add("SCINTILLATIONTIMECONSTANT2", 100. * ns)
         .add("SCINTILLATIONYIELD1", .1)
         .add("SCINTILLATIONYIELD2", .9)
-        .add("ATTACHMENT", e_lifetime, 1)
+        .NEW("ATTACHMENT", e_lifetime)
         .done();
 
 }
@@ -371,14 +371,14 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
         .add("ABSLENGTH", abs_energy_Ar, absLength_Ar)
         .add("SCINTILLATIONCOMPONENT1", sc_energy_Ar, intensity_Ar)
         .add("SCINTILLATIONCOMPONENT2", sc_energy_Ar, intensity_Ar)
-        .add("ELSPECTRUM",  sc_energy_Ar, intensity_Ar, sc_entries)
+        .NEW("ELSPECTRUM",  sc_energy_Ar, intensity_Ar)
         .add("SCINTILLATIONYIELD", sc_yield)
         .add("SCINTILLATIONTIMECONSTANT1",6.*ns)  // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
         .add("SCINTILLATIONTIMECONSTANT2", 3480.*ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
         .add("SCINTILLATIONYIELD1", .136) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
         .add("SCINTILLATIONYIELD2", .864) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
         .add("RESOLUTIONSCALE", 1.0)
-        .add("ATTACHMENT", e_lifetime, 1)
+        .NEW("ATTACHMENT", e_lifetime)
     .done();   
 
 }   
