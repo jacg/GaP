@@ -831,10 +831,10 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
 
     G4int verbosity = 0;
     auto physics_list = new FTFP_BERT{verbosity};
-    physics_list -> ReplacePhysics(new G4EmStandardPhysics_option4());
+    physics_list ->  ReplacePhysics(new G4EmStandardPhysics_option4());
     physics_list -> RegisterPhysics(new G4OpticalPhysics{});
-    physics_list->RegisterPhysics(new G4RadioactiveDecayPhysics);
-    physics_list->RegisterPhysics(new G4DecayPhysics());
+    physics_list -> RegisterPhysics(new G4RadioactiveDecayPhysics);
+    physics_list -> RegisterPhysics(new G4DecayPhysics());
 
 
     auto run_manager = std::unique_ptr<G4RunManager>
