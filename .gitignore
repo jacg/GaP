@@ -51,3 +51,5 @@ oldFiles
 EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation_G4.txt
 OoO
 build
+G4History.macro
+.direnv/
