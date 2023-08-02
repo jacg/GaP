@@ -328,10 +328,10 @@ G4PVPlacement* geometry() {
   G4ThreeVector pos = G4ThreeVector(0, 0, 0);
 
   for (G4int i = 0; i < G4int(pmt_PsX.size()); i++) {
-    pos_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, -pmt_z);
-    pos_enclosure_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, relative_pmt_z);
+    pos_pmt              = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,            -pmt_z);
+    pos_enclosure_pmt    = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,    relative_pmt_z);
     pos_enclosurevac_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, relativevac_pmt_z);
-    pos = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, 0.);
+    pos                  = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, 0);
 
     solid_enclosure_pmt    = new G4SubtractionSolid("EnclosurePMT_Sub"    , solid_enclosure_pmt    , solid_pmt, 0, pos_enclosure_pmt);
     solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub" , solid_enclosurevac_pmt , solid_pmt, 0, pos_enclosurevac_pmt);
