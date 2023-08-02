@@ -180,9 +180,8 @@ G4PVPlacement* geometry() {
   n4::tubs("Anode").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(gas_el).at(0., 0., anode_z).check_overlaps().now();
 
   //Anode Bracket
-  auto anodeBracket = n4::volume<G4Tubs>("AnodeBracket", steel, mesh_rad_, anodeBracket_rad_, (anodeBracket_thickn_)/2, 0., 360.*deg);
   G4double anodeBracket_z = gateBracket_z + meshBracket_thickn_/2 + 3.775*mm + anodeBracket_thickn_/2;
-  n4::place(anodeBracket).in(vessel).at({0., 0., -anodeBracket_z}).check_overlaps().now();
+  n4::tubs("AnodeBracket").r_inner(mesh_rad_).r(anodeBracket_rad_).z(anodeBracket_thickn_).place(steel).in(vessel).at(0, 0, -anodeBracket_z).check_overlaps().now();
 
   // Peek Anode Holder
   G4double anodeHolder_length_  = 30        *mm;
