@@ -4,6 +4,7 @@
 #include "g4-mandatory.hh"
 #include "geometry.hh"
 #include "n4-volumes.hh"
+#include "n4-utils.hh"
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
@@ -207,11 +208,9 @@ G4PVPlacement* geometry() {
   G4RotationMatrix* Rot_135 = new G4RotationMatrix(); Rot_135 -> rotateZ(-135*deg);
 
   G4double anodeHolder_z = 29.495*mm + anodeHolder_length_/2;
-  n4::place(anode_holder).in(vessel).rotate_z(  45*deg).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate_z( 135*deg).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate_z(- 45*deg).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate_z(-135*deg).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
-
+  for (auto [i, angle] : enumerate({45, 135, -45, -135}) ) {
+    n4::place(anode_holder).in(vessel).rotate_z(angle*deg).at(0, 0, -anodeHolder_z).copy_no(i).check_overlaps().now();
+  }
 
   /////////////////////////
 
