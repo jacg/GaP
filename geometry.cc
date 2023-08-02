@@ -1,20 +1,19 @@
+#include "materials.hh"
+
 #include "nain4.hh"
 #include "g4-mandatory.hh"
 #include "geometry.hh"
-#include "materials.hh"
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
-#include <G4OpticalPhysics.hh>
-#include <G4RunManagerFactory.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4RandomDirection.hh>
-#include <G4Tubs.hh>
-#include <G4SubtractionSolid.hh>
-#include <G4UnionSolid.hh>
-//#include <G4MultiUnion.hh>
-
 #include <G4Material.hh>
+#include <G4OpticalPhysics.hh>
+#include <G4RandomDirection.hh>
+#include <G4RunManagerFactory.hh>
+#include <G4SubtractionSolid.hh>
+#include <G4SystemOfUnits.hh>
+#include <G4Tubs.hh>
+#include <G4UnionSolid.hh>
 
 #include <iostream>
 
