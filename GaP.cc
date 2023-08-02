@@ -84,7 +84,7 @@ void generate_inside(G4Event* event, G4double /*time*/){
     G4double pos_x = r * cos(angle);
     G4double pos_y = r * sin(angle);
     G4double pos_z = z;
-    
+
     particleGun -> SetParticlePosition({pos_x, pos_y, pos_z});
     particleGun -> GeneratePrimaryVertex(event);
 
@@ -189,7 +189,7 @@ void generate_Co57(G4Event* event, G4ThreeVector position, G4double /*time*/){
     banner("time");
 
     auto gamma          = n4::find_particle("gamma");
-    
+
     auto p_xray_122 = 0.86;
     auto p_no_xray_122  = 1 - p_xray_122;
     static auto distribution_1 = n4::random::biased_choice{{p_xray_122, p_no_xray_122}};
@@ -211,7 +211,7 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double /*time*/){
     //G4double lifetime = XXX * year;
     //banner("time")
     auto gamma = n4::find_particle("gamma");
-    
+
     auto p_xray = 0.99;
     auto p_no_xray = 1 - p_xray;
     static auto distribution_1 = n4::random::biased_choice{{p_xray, p_no_xray}};
@@ -239,7 +239,7 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double /*time*/){
     if (random_event_3 == 0) { /*banner("DECAY 3");*/ generate_particles_in_event(event, position, {{gamma,  81 * keV}}); }
     if (random_event_4 == 0) { /*banner("DECAY 4");*/ generate_particles_in_event(event, position, {{gamma, 303 * keV}}); }
 }
-   
+
 void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double /*time*/){
     std::string IonName{"Kr83m"};
 
@@ -270,10 +270,10 @@ auto get_pre_volume_name(G4Step const * const step) {
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello World!" << std::endl;
-    
+
     //G4double time;
     //auto get_time[](auto step){ G4double time = step -> GetDeltaTime();};
-    
+
     // G4double vessel_out_rad_    = 288./2  *mm;
     // G4double vessel_out_length_ = 46.679  *cm;
     // G4double angle =  0 * rad;
@@ -306,7 +306,7 @@ int main(int argc, char *argv[]) {
         }
         //G4cout << "********************************** " << energy_deposit_total << " **********************************" << G4endl;
     } ;
-    
+
     [[maybe_unused]]
     auto print_energy = [& energy_deposit_total](G4Event const*){G4cout << "*******************************/// " << energy_deposit_total << " ///*******************************"  << G4endl;} ;
 
@@ -324,7 +324,7 @@ int main(int argc, char *argv[]) {
             // file << energy_deposit_total << "\n";
             file << energy_deposit_total * 1000. << "\n";
             file.close();
-    
+
             //G4cout << "*************************************  :)  " << energy_deposit_total << "  (:  *************************************      <---------"  << G4endl;
             eventCounter++;
             if (eventCounter % 100000 == 0) {
@@ -359,17 +359,17 @@ int main(int argc, char *argv[]) {
     auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &counts](G4Step const* step) {
 
         G4Track* track = step->GetTrack();
-    
+
         if (step -> GetPreStepPoint() -> GetTouchableHandle() -> GetVolume() -> GetLogicalVolume() -> GetName() == "gas_drift") {
             // auto energy_deposit_step_pre  = step -> GetPreStepPoint()  -> GetTotalEnergy();
             // auto energy_deposit_step_post = step -> GetPostStepPoint() -> GetTotalEnergy();
             auto energy_kinetic = step->GetPreStepPoint()->GetKineticEnergy();
             //auto energy_deposit_step = energy_deposit_step_pre - energy_deposit_step_post;
-        
+
             G4double energy_deposit_step = step -> GetTotalEnergyDeposit();
-         
+
             //const G4Track* track = step->GetTrack();
-        
+
             G4int PDGEncoding = track->GetDefinition()->GetPDGEncoding();
             G4int particleID = track->GetParentID();
             G4int trackID = track->GetTrackID();
@@ -377,18 +377,18 @@ int main(int argc, char *argv[]) {
             G4ThreeVector position = step->GetPostStepPoint()->GetPosition();
             G4double time = step->GetPostStepPoint()->GetGlobalTime();
             time = time * ns;
-        
+
             G4double stepLenght = step->GetStepLength();
             auto velocity = step->GetPreStepPoint()->GetVelocity();
             auto  speed = step->GetPreStepPoint()->GetBeta() *  CLHEP::c_light;
             const G4VProcess* process = step->GetPostStepPoint()->GetProcessDefinedStep();
             G4String interactionType = process->GetProcessName();
-        
+
             if (energy_deposit_step != 0.0 && interactionType!= "Transportation") {
                 if (energy_deposit_step != 0.0) {
                     energy_deposit_total += energy_deposit_step;
                     counts++;
-            
+
                     std::ofstream file(filename_step, std::ios::app);
                     int colWidth = 20;
                     file << std::left << std::setw(colWidth) << PDGEncoding ;
@@ -543,7 +543,7 @@ int main(int argc, char *argv[]) {
         file << std::left << std::setw(colWidth) << "Interaction type";
         file << std::endl;
         file.close();
-    
+
         eventCounter = 0;
     };
 
