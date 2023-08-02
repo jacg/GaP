@@ -200,17 +200,11 @@ G4PVPlacement* geometry() {
     .at(0, 0, anodeHolder_length_/2 - anodeHolder_hole_length_/2)
     .volume(peek);
 
-
-  G4RotationMatrix* Rot45   = new G4RotationMatrix(); Rot45   -> rotateZ(  45*deg);
-  G4RotationMatrix* Rot_45  = new G4RotationMatrix(); Rot_45  -> rotateZ( -45*deg);
-  G4RotationMatrix* Rot135  = new G4RotationMatrix(); Rot135  -> rotateZ( 135*deg);
-  G4RotationMatrix* Rot_135 = new G4RotationMatrix(); Rot_135 -> rotateZ(-135*deg);
-
   G4double anodeHolder_z = 29.495*mm + anodeHolder_length_/2;
-  n4::place(anode_holder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate(*Rot135).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate(*Rot_45).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
-  n4::place(anode_holder).in(vessel).rotate(*Rot_135).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate_z(  45*deg).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate_z( 135*deg).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate_z(- 45*deg).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate_z(-135*deg).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
 
 
   /////////////////////////
