@@ -176,9 +176,8 @@ G4PVPlacement* geometry() {
   n4::tubs("gateBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_).place(steel).in(vessel).at(0, 0, -gateBracket_z).check_overlaps().now();
 
   //Anode
-  auto anode = n4::volume<G4Tubs>("Anode", mesh_mat, 0.,  mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
   G4double anode_z = - el_length_/2 + mesh_thickn_/2;
-  n4::place(anode).in(gas_el).at({0., 0., anode_z}).check_overlaps().now();
+  n4::tubs("Anode").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(gas_el).at(0., 0., anode_z).check_overlaps().now();
 
   //Anode Bracket
   auto anodeBracket = n4::volume<G4Tubs>("AnodeBracket", steel, mesh_rad_, anodeBracket_rad_, (anodeBracket_thickn_)/2, 0., 360.*deg);
