@@ -19,6 +19,52 @@
 
 #include <iostream>
 
+
+void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Material* peek, G4Material* steel) {
+  // Peek Mesh Holder (holds cathode and gate)
+  G4double meshHolder_length_    = 36.75     *mm;
+  G4double meshHolder_width_     = 21.035    *mm;
+  G4double meshHolder_thickn_    = 24        *mm;
+
+  G4double meshHolder_hole_length_   = 15.75  *mm;
+  G4double meshHolder_holeUp_length_ = 6      *mm;
+  G4double meshHolder_hole_thickn_   = 11.667 *mm;
+
+  auto dz_down =   meshHolder_length_/2 - meshHolder_hole_length_  /2 - 5*mm;
+  auto dz_up   = -(meshHolder_length_/2 - meshHolder_holeUp_length_/2 - 5*mm);
+
+  auto logic_meshHolder =
+    /*      */n4::box("MeshHolder"        ).xyz(meshHolder_width_  , meshHolder_thickn_       , meshHolder_length_       )
+    .subtract(n4::box("MEshHolderHoleDown").xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_hole_length_  )).at(0, meshHolder_thickn_/2, dz_down)
+    .subtract(n4::box("MEshHolderHoleUp"  ).xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_holeUp_length_)).at(0, meshHolder_thickn_/2, dz_up  )
+    .name("MeshHolder")
+    .volume(peek);
+
+  G4double meshHolder_x = 5*mm + meshBracket_rad_ * cos(45*deg);
+  G4double meshHolder_y = 5*mm + meshBracket_rad_ * sin(45*deg);
+  G4double meshHolder_z = -13.005*mm + meshHolder_length_/2 ;
+
+  for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
+    n4::place(logic_meshHolder).in(vessel).rotate_z(angle*deg).at(-meshHolder_x, -meshHolder_y, -meshHolder_z).copy_no(i).check_overlaps().now();
+  }
+
+  //Steel Bar joining Mesh holder and PMT clad
+  G4double meshHolderBar_rad_     = 9./2   *mm;
+  G4double meshHolderBar_length_  = 35.75  *mm;
+  G4double meshHolderBar_xy = 73.769*mm;
+  G4double meshHolderBar_z  = meshHolder_z + meshHolder_length_/2 + meshHolderBar_length_/2 ;
+
+
+  auto meshHolderBar = n4::tubs("MeshHolderBar").r(meshHolderBar_rad_).z(meshHolderBar_length_).volume(steel);
+  auto i = 1;
+  for   (auto y : {meshHolderBar_xy, -meshHolderBar_xy}) {
+    for (auto x : {meshHolderBar_xy, -meshHolderBar_xy}) {
+      n4::place(meshHolderBar).in(vessel).at(meshHolderBar_xy,  meshHolderBar_xy, -meshHolderBar_z).copy_no(i++).check_overlaps().now();
+    }
+  }
+}
+
+
 G4PVPlacement* geometry() {
   auto model_new_= 1;
 
@@ -361,48 +407,7 @@ G4PVPlacement* geometry() {
     //n4::place(logic_A).in(vessel).rotate(*Rot45).at({A_xy, -A_xy, -A_z}).copy_no(2).check_overlaps().now();
     //n4::place(logic_A).in(vessel).rotate(*Rot135).at({A_xy, A_xy, -A_z}).copy_no(3).check_overlaps().now();
   } else {
-
-    // Peek Mesh Holder (holds cathode and gate)
-    G4double meshHolder_length_    = 36.75     *mm;
-    G4double meshHolder_width_     = 21.035    *mm;
-    G4double meshHolder_thickn_    = 24        *mm;
-
-    G4double meshHolder_hole_length_   = 15.75  *mm;
-    G4double meshHolder_holeUp_length_ = 6      *mm;
-    G4double meshHolder_hole_thickn_   = 11.667 *mm;
-
-    auto dz_down =   meshHolder_length_/2 - meshHolder_hole_length_  /2 - 5*mm;
-    auto dz_up   = -(meshHolder_length_/2 - meshHolder_holeUp_length_/2 - 5*mm);
-
-    auto logic_meshHolder =
-    /*        */n4::box("MeshHolder"        ).xyz(meshHolder_width_  , meshHolder_thickn_       , meshHolder_length_       )
-      .subtract(n4::box("MEshHolderHoleDown").xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_hole_length_  )).at(0, meshHolder_thickn_/2, dz_down)
-      .subtract(n4::box("MEshHolderHoleUp"  ).xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_holeUp_length_)).at(0, meshHolder_thickn_/2, dz_up  )
-      .name("MeshHolder")
-      .volume(peek);
-
-    G4double meshHolder_x = 5*mm + meshBracket_rad_ * cos(45*deg);
-    G4double meshHolder_y = 5*mm + meshBracket_rad_ * sin(45*deg);
-    G4double meshHolder_z = -13.005*mm + meshHolder_length_/2 ;
-
-    for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
-      n4::place(logic_meshHolder).in(vessel).rotate_z(angle*deg).at(-meshHolder_x, -meshHolder_y, -meshHolder_z).copy_no(i).check_overlaps().now();
-    }
-
-    //Steel Bar joining Mesh holder and PMT clad
-    G4double meshHolderBar_rad_     = 9./2   *mm;
-    G4double meshHolderBar_length_  = 35.75  *mm;
-    G4double meshHolderBar_xy = 73.769*mm;
-    G4double meshHolderBar_z  = meshHolder_z + meshHolder_length_/2 + meshHolderBar_length_/2 ;
-
-
-    auto meshHolderBar = n4::tubs("MeshHolderBar").r(meshHolderBar_rad_).z(meshHolderBar_length_).volume(steel);
-    auto i = 1;
-    for   (auto y : {meshHolderBar_xy, -meshHolderBar_xy}) {
-      for (auto x : {meshHolderBar_xy, -meshHolderBar_xy}) {
-        n4::place(meshHolderBar).in(vessel).at(meshHolderBar_xy,  meshHolderBar_xy, -meshHolderBar_z).copy_no(i++).check_overlaps().now();
-      }
-    }
+    build_mesh_holder(meshBracket_rad_, vessel, peek, steel);
   }
   return n4::place(world).now();
 }
