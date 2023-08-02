@@ -57,6 +57,15 @@ void generate_electrons(G4Event* event, G4ThreeVector /*position*/, G4double /*t
     particleGun -> GeneratePrimaryVertex(event);
 }
 
+namespace find_me_a_good_name {
+    G4double cathode_z           = (90.1125 - 15.745) *mm;
+    G4double mesh_thickn_        =   0.075            *mm;
+    G4double meshBracket_thickn_ =   6                *mm;
+    G4double drift_length_       =  96                *mm - meshBracket_thickn_ ;
+    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    G4double meshBracket_rad_    = 180./2  *mm;
+}
+
 void generate_inside(G4Event* event, G4double /*time*/){
     static G4ParticleGun* particleGun = new G4ParticleGun(2);
     auto electron = nain4::find_particle("gamma");
@@ -64,12 +73,7 @@ void generate_inside(G4Event* event, G4double /*time*/){
     particleGun -> SetParticleEnergy(511*keV);
     particleGun -> SetParticleMomentumDirection(G4RandomDirection());
 
-    G4double cathode_z           = (90.1125 - 15.745) *mm;
-    G4double mesh_thickn_        =  0.075   *mm;
-    G4double meshBracket_thickn_ =  6       *mm;
-    G4double drift_length_       = 96       *mm - meshBracket_thickn_ ;
-    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    G4double meshBracket_rad_    = 180./2  *mm;
+    using namespace find_me_a_good_name;
 
     G4double r     = G4RandFlat::shoot( 0., meshBracket_rad_);
     G4double angle = G4RandFlat::shoot( 0., 2*M_PI);
@@ -89,14 +93,33 @@ void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* parti
     vertex -> SetPrimary(new G4PrimaryParticle(particle, dir.x(), dir.y(), dir.z()));
 };
 
-void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
+G4ThreeVector position() {
+    using namespace find_me_a_good_name;
+    auto r     = G4RandFlat::shoot( 0., meshBracket_rad_);
+    auto angle = G4RandFlat::shoot( 0., 2*M_PI);
+    auto z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
+    auto pos_x = r * cos(angle);
+    auto pos_y = r * sin(angle);
+    auto pos_z = z;
+    return G4ThreeVector{pos_x, pos_y, pos_z};
+};
 
-    G4double cathode_z           = (90.1125 - 15.745) *mm;
-    G4double mesh_thickn_        =   0.075            *mm;
-    G4double meshBracket_thickn_ =   6                *mm;
-    G4double drift_length_       =  96                *mm - meshBracket_thickn_ ;
-    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    G4double meshBracket_rad_    = 180./2  *mm;
+std::unique_ptr<G4PrimaryVertex> generate_vertex() {
+    auto vertex = std::make_unique<G4PrimaryVertex>();
+    auto pos = position();
+    vertex -> SetPosition(pos.x(), pos.y(), pos.z());
+    return vertex;
+};
+
+void generate_particles_in_event(G4Event* event, std::vector<std::tuple<G4ParticleDefinition*, G4double>> particles_and_energies) {
+    auto vertex = generate_vertex();
+    for (auto [particle, energy] : particles_and_energies) {
+        add_particle_to_vertex(vertex.get(), particle, energy);
+    }
+    event -> AddPrimaryVertex(vertex.release());
+}
+
+void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
 
     //Decay 1
     std::vector<double> probabilities_m2 = {0.76, 0.09, 0.15};
@@ -113,56 +136,31 @@ void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
     int random_event_1 = dis_1(gen_1);
     int random_event_2 = dis_2(gen_2);
 
-    auto direction = [meshBracket_rad_, drift_length_, drift_z] {
-        auto r     = G4RandFlat::shoot( 0., meshBracket_rad_);
-        auto angle = G4RandFlat::shoot( 0., 2*M_PI);
-        auto z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        auto pos_x = r * cos(angle);
-        auto pos_y = r * sin(angle);
-        auto pos_z = z;
-        return G4ThreeVector{pos_x, pos_y, pos_z};
-    };
-
-    auto generate_vertex = [&direction] {
-        auto vertex = std::make_unique<G4PrimaryVertex>();
-        auto pos = direction();
-        vertex -> SetPosition(pos.x(), pos.y(), pos.z());
-        return vertex;
-    };
-
     auto electron       = n4::find_particle("e-");
     auto optical_photon = n4::find_particle("opticalphoton");
     auto gamma          = n4::find_particle("gamma");
 
     if (random_event_1 == 0) {
         G4cout << "********************************** DECAY 1 = 0.76 **********************************" << G4endl;
-        auto vertex = generate_vertex();
-        add_particle_to_vertex(vertex.get(), electron, 30 * keV);
-        add_particle_to_vertex(vertex.get(), electron,  2 *keV);
-        event -> AddPrimaryVertex(vertex.release());
+        generate_particles_in_event(event, {{electron, 30 * keV},
+                                            {electron,  2 * keV}});
     } else if (random_event_1 == 1) {
-      G4cout << "********************************** DECAY 1 = 0.09 **********************************" << G4endl;
-        auto vertex = generate_vertex();
-        add_particle_to_vertex(vertex.get(), electron, 18 * keV);
-        add_particle_to_vertex(vertex.get(), electron, 10 * keV);
-        add_particle_to_vertex(vertex.get(), electron,  2 * keV);
-        add_particle_to_vertex(vertex.get(), electron,  2 *keV);
-        event -> AddPrimaryVertex(vertex.release());
+        G4cout << "********************************** DECAY 1 = 0.09 **********************************" << G4endl;
+        generate_particles_in_event(event, {{electron, 18 * keV},
+                                            {electron, 10 * keV},
+                                            {electron,  2 * keV},
+                                            {electron,  2 * keV}});
     } else if (random_event_1 == 2) {
-      G4cout << "********************************** DECAY 1 = 0.15 **********************************" << G4endl;
-        auto vertex = generate_vertex();
-        add_particle_to_vertex(vertex.get(), electron      , 18 * keV);
-        add_particle_to_vertex(vertex.get(), optical_photon, 12 * keV);
-        add_particle_to_vertex(vertex.get(), electron      ,  2 * keV);
-        event -> AddPrimaryVertex(vertex.release());
+        G4cout << "********************************** DECAY 1 = 0.15 **********************************" << G4endl;
+        generate_particles_in_event(event, {{ electron      , 18 * keV},
+                                            { optical_photon, 12 * keV},
+                                            { electron      ,  2 * keV}});
     }
 
     if (random_event_2 == 0) {
         G4cout << "********************************** DECAY 2 = 0.95 **********************************" << G4endl;
-        auto vertex = generate_vertex();
-        add_particle_to_vertex(vertex.get(), electron, 7.6 * keV);
-        add_particle_to_vertex(vertex.get(), electron, 1.8 * keV);
-        event -> AddPrimaryVertex(vertex.release());
+        generate_particles_in_event(event, {{electron, 7.6 * keV},
+                                            {electron, 1.8 * keV}});
     } else if (random_event_2 == 1) {
         G4cout << "********************************** DECAY 2 = 0.05 **********************************" << G4endl;
         auto vertex = generate_vertex();
