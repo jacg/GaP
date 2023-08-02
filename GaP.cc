@@ -1,316 +1,173 @@
 #include "nain4.hh"
 #include "g4-mandatory.hh"
 #include "n4_ui.hh"
+
 #include "geometry.hh"
 #include "kr83.hh"
 
+#include <CLHEP/Units/PhysicalConstants.h>
 #include <FTFP_BERT.hh>
+#include <G4DecayPhysics.hh>
 #include <G4EmStandardPhysics_option4.hh>
+#include <G4Event.hh>
+#include <G4IonTable.hh>
 #include <G4OpticalPhysics.hh>
-#include <G4RunManagerFactory.hh>
-#include <G4SystemOfUnits.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
+#include <G4PrimaryParticle.hh>
+#include <G4PrimaryVertex.hh>
+#include <G4RadioactiveDecayPhysics.hh>
 #include <G4RandomDirection.hh>
-#include <G4Tubs.hh>
+#include <G4RunManagerFactory.hh>
 #include <G4SubtractionSolid.hh>
-#include <G4UnionSolid.hh>
-
+#include <G4SystemOfUnits.hh>
+#include <G4ThreeVector.hh>
+#include <G4Tubs.hh>
+#include <G4Types.hh>
 #include <G4UIExecutive.hh>
 #include <G4UImanager.hh>
+#include <G4UnionSolid.hh>
+#include <G4VisAttributes.hh>
 #include <G4VisExecutive.hh>
 #include <G4VisManager.hh>
-#include <iostream>
-#include <memory>
-
-#include <cmath>
-#include <random>
-#include <vector>
-#include "G4VisAttributes.hh"
-#include <iostream>
-#include <iomanip>
-
-#include "G4ParticleTable.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4Event.hh"
-#include "G4PrimaryVertex.hh"
-#include "G4PrimaryParticle.hh"
-
-#include "G4IonTable.hh"
-#include "G4DecayPhysics.hh"
-#include "G4RadioactiveDecayPhysics.hh"
 
 #include <chrono>
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <random>
+#include <vector>
 
 
 void generate_gammas(G4Event* event, G4ThreeVector position, G4double time, G4double energy) {
     auto gamma = nain4::find_particle("gamma");
-    auto p =energy*keV * G4RandomDirection();
-    //auto p = 511*keV * G4ThreeVector(-1., 0., 0.);
-    auto vertex =      new G4PrimaryVertex(position, time);
+    auto p = energy*keV * G4RandomDirection();
+    auto vertex = new G4PrimaryVertex{position, time};
     vertex -> SetPrimary(new G4PrimaryParticle(gamma,  p.x(),  p.y(),  p.z()));
     event -> AddPrimaryVertex(vertex);
 }
 
-void generate_electrons(G4Event* event, G4ThreeVector position, G4double time) {
+void generate_electrons(G4Event* event, G4ThreeVector /*position*/, G4double /*time*/) {
+    static G4ParticleGun* particleGun = new G4ParticleGun(1);
     auto electron = nain4::find_particle("e-");
-    G4ParticleGun* particleGun = new G4ParticleGun(1);
-    particleGun->SetParticleDefinition(electron);
-    auto T = 511*keV;
-    particleGun -> SetParticleEnergy(T);
-    auto p = G4RandomDirection();
-    particleGun-> SetParticleMomentumDirection(p);
-    particleGun->GeneratePrimaryVertex(event);
+    particleGun -> SetParticleDefinition(electron);
+    particleGun -> SetParticleEnergy(511*keV);
+    particleGun -> SetParticleMomentumDirection(G4RandomDirection());
+    particleGun -> GeneratePrimaryVertex(event);
 }
 
-void generate_inside(G4Event* event, G4double time){
-    auto particle = nain4::find_particle("gamma");
-    G4ParticleGun* particleGun = new G4ParticleGun(2);
-    particleGun->SetParticleDefinition(particle);
-    auto T = 511*keV;
-    particleGun -> SetParticleEnergy(T);
-    auto p = G4RandomDirection();
-    particleGun-> SetParticleMomentumDirection(p);
+void generate_inside(G4Event* event, G4double /*time*/){
+    static G4ParticleGun* particleGun = new G4ParticleGun(2);
+    auto electron = nain4::find_particle("gamma");
+    particleGun -> SetParticleDefinition(electron);
+    particleGun -> SetParticleEnergy(511*keV);
+    particleGun -> SetParticleMomentumDirection(G4RandomDirection());
 
-    G4double cathode_z = 90.1125*mm - 15.745*mm;
-    G4double mesh_thickn_       = 0.075   *mm;
-    G4double meshBracket_thickn_   = 6.      *mm;
-    G4double drift_length_  = 96.*mm - meshBracket_thickn_ ;
-    G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    G4double meshBracket_rad_      = 180./2  *mm;
+    G4double cathode_z           = (90.1125 - 15.745) *mm;
+    G4double mesh_thickn_        =  0.075   *mm;
+    G4double meshBracket_thickn_ =  6       *mm;
+    G4double drift_length_       = 96       *mm - meshBracket_thickn_ ;
+    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    G4double meshBracket_rad_    = 180./2  *mm;
 
-    G4double r = G4RandFlat::shoot( 0., meshBracket_rad_);
+    G4double r     = G4RandFlat::shoot( 0., meshBracket_rad_);
     G4double angle = G4RandFlat::shoot( 0., 2*M_PI);
-    G4double z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
+    G4double z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
 
     G4double pos_x = r * cos(angle);
     G4double pos_y = r * sin(angle);
     G4double pos_z = z;
     
-    particleGun->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-    particleGun->GeneratePrimaryVertex(event);
+    particleGun -> SetParticlePosition({pos_x, pos_y, pos_z});
+    particleGun -> GeneratePrimaryVertex(event);
 
 }
 
-void generate_Kr83m2_decay(G4Event* event, G4double time){
+void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* particle, G4double energy) {
+    auto dir = G4RandomDirection() * energy / CLHEP::c_light;
+    vertex -> SetPrimary(new G4PrimaryParticle(particle, dir.x(), dir.y(), dir.z()));
+};
 
-    G4double cathode_z = 90.1125*mm - 15.745*mm;
-    G4double mesh_thickn_       = 0.075   *mm;
-    G4double meshBracket_thickn_   = 6.      *mm;
-    G4double drift_length_  = 96.*mm - meshBracket_thickn_ ;
-    G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    G4double meshBracket_rad_      = 180./2  *mm;
+void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
 
-    G4double r;
-    G4double angle;
-    G4double z;
-    G4double pos_x;
-    G4double pos_y;
-    G4double pos_z;
+    G4double cathode_z           = (90.1125 - 15.745) *mm;
+    G4double mesh_thickn_        =   0.075            *mm;
+    G4double meshBracket_thickn_ =   6                *mm;
+    G4double drift_length_       =  96                *mm - meshBracket_thickn_ ;
+    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    G4double meshBracket_rad_    = 180./2  *mm;
 
     //Decay 1
     std::vector<double> probabilities_m2 = {0.76, 0.09, 0.15};
-
     std::random_device rd_1;
     std::mt19937 gen_1(rd_1());
-    
     std::discrete_distribution<int> dis_1(probabilities_m2.begin(), probabilities_m2.end());
 
-    int random_event_1 = dis_1(gen_1);
-    
-    if (random_event_1 == 0)
-    {
-        G4cout << "********************************** DECAY 1 = 0.76 **********************************" << G4endl;
-
-        auto electron = nain4::find_particle("e-");
-        //electron -> SetVisAttributes(new G4VisAttributes(G4Color(1., 0., 0.)));
-
-        G4ParticleGun* particleGun_IC = new G4ParticleGun(1);
-        particleGun_IC->SetParticleDefinition(electron);
-        auto T_IC = 30.*keV;
-        particleGun_IC -> SetParticleEnergy(T_IC);
-        auto p_IC = G4RandomDirection();
-        particleGun_IC-> SetParticleMomentumDirection(p_IC);
-
-        G4ParticleGun* particleGun_A = new G4ParticleGun(2);
-        particleGun_A->SetParticleDefinition(electron);
-        auto T_A = 2.*keV;
-        particleGun_A -> SetParticleEnergy(T_A);
-        auto p_A = G4RandomDirection();
-        particleGun_A-> SetParticleMomentumDirection(p_A);
-
-        r = G4RandFlat::shoot( 0., meshBracket_rad_);
-        angle = G4RandFlat::shoot( 0., 2*M_PI);
-        z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        pos_x = r * cos(angle);
-        pos_y = r * sin(angle);
-        pos_z = z;
-        particleGun_A->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A->GeneratePrimaryVertex(event);
-        particleGun_IC->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_IC->GeneratePrimaryVertex(event);
-
-    }
-    else if (random_event_1 == 1)
-    {
-        G4cout << "********************************** DECAY 1 = 0.09 **********************************" << G4endl;
-
-        auto electron = nain4::find_particle("e-");
-        //electron -> SetVisAttributes(new G4VisAttributes(G4Color(1., 0., 0.)));
-
-        G4ParticleGun* particleGun_IC = new G4ParticleGun(1);
-        particleGun_IC->SetParticleDefinition(electron);
-        auto T_IC = 18.*keV;
-        particleGun_IC -> SetParticleEnergy(T_IC);
-        auto p_IC = G4RandomDirection();
-        particleGun_IC-> SetParticleMomentumDirection(p_IC);
-
-        G4ParticleGun* particleGun_A1 = new G4ParticleGun(2);
-        particleGun_A1->SetParticleDefinition(electron);
-        auto T_A1 = 10.*keV;
-        particleGun_A1 -> SetParticleEnergy(T_A1);
-        auto p_A1 = G4RandomDirection();
-        particleGun_A1-> SetParticleMomentumDirection(p_A1);
-
-        G4ParticleGun* particleGun_A2 = new G4ParticleGun(3);
-        particleGun_A2->SetParticleDefinition(electron);
-        auto T_A2 = 2.*keV;
-        particleGun_A2 -> SetParticleEnergy(T_A2);
-        auto p_A2 = G4RandomDirection();
-        particleGun_A2-> SetParticleMomentumDirection(p_A2);
-
-        G4ParticleGun* particleGun_A3 = new G4ParticleGun(4);
-        particleGun_A3->SetParticleDefinition(electron);
-        auto T_A3 = 2.*keV;
-        particleGun_A3 -> SetParticleEnergy(T_A3);
-        auto p_A3 = G4RandomDirection();
-        particleGun_A3-> SetParticleMomentumDirection(p_A3);
-
-        r = G4RandFlat::shoot( 0., meshBracket_rad_);
-        angle = G4RandFlat::shoot( 0., 2*M_PI);
-        z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        pos_x = r * cos(angle);
-        pos_y = r * sin(angle);
-        pos_z = z;
-        particleGun_A3->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A3->GeneratePrimaryVertex(event);
-        particleGun_A2->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A2->GeneratePrimaryVertex(event);
-        particleGun_A1->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A1->GeneratePrimaryVertex(event);
-        particleGun_IC->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_IC->GeneratePrimaryVertex(event);
-
-    }
-    else if (random_event_1 == 2)
-    {
-        G4cout << "********************************** DECAY 1 = 0.15 **********************************" << G4endl;
-
-        auto electron = nain4::find_particle("e-");
-        //electron -> SetVisAttributes(new G4VisAttributes(G4Color(1., 0., 0.)));
-        auto optical_photon = nain4::find_particle("opticalphoton");
-        //optical_photon -> SetVisAttributes(new G4VisAttributes(G4Color(1., 0.9, 0.)));
-
-        G4ParticleGun* particleGun_IC = new G4ParticleGun(1);
-        particleGun_IC->SetParticleDefinition(electron);
-        auto T_IC = 18.*keV;
-        particleGun_IC -> SetParticleEnergy(T_IC);
-        auto p_IC = G4RandomDirection();
-        particleGun_IC-> SetParticleMomentumDirection(p_IC);
-
-        G4ParticleGun* particleGun_X = new G4ParticleGun(2);
-        particleGun_X->SetParticleDefinition(optical_photon);
-        auto T_X = 12.*keV;
-        particleGun_X -> SetParticleEnergy(T_X);
-        auto p_X = G4RandomDirection();
-        particleGun_X-> SetParticleMomentumDirection(p_X);
-
-        G4ParticleGun* particleGun_A = new G4ParticleGun(3);
-        particleGun_A->SetParticleDefinition(electron);
-        auto T_A = 2.*keV;
-        particleGun_A -> SetParticleEnergy(T_A);
-        auto p_A = G4RandomDirection();
-        particleGun_A-> SetParticleMomentumDirection(p_A);
-
-        r = G4RandFlat::shoot( 0., meshBracket_rad_);
-        angle = G4RandFlat::shoot( 0., 2*M_PI);
-        z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        pos_x = r * cos(angle);
-        pos_y = r * sin(angle);
-        pos_z = z;
-        particleGun_A->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A->GeneratePrimaryVertex(event);
-        particleGun_X->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_X->GeneratePrimaryVertex(event);
-        particleGun_IC->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_IC->GeneratePrimaryVertex(event);
-
-    }
-    
     //Decay 2 //falta tener en cuenta el tiempo medio de las partículas
     std::vector<double> probabilities_m1 = {0.95, 0.05};
-
     std::random_device rd_2;
     std::mt19937 gen_2(rd_2());
-    
     std::discrete_distribution<int> dis_2(probabilities_m1.begin(), probabilities_m1.end());
 
+    int random_event_1 = dis_1(gen_1);
     int random_event_2 = dis_2(gen_2);
-    
-    if (random_event_2 == 0)
-    {
-        G4cout << "********************************** DECAY 2 = 0.95 **********************************" << G4endl;
 
-        auto electron = nain4::find_particle("e-");
-        //electron -> SetVisAttributes(new G4VisAttributes(G4Color(1., 0., 0.)));
+    auto direction = [meshBracket_rad_, drift_length_, drift_z] {
+        auto r     = G4RandFlat::shoot( 0., meshBracket_rad_);
+        auto angle = G4RandFlat::shoot( 0., 2*M_PI);
+        auto z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
+        auto pos_x = r * cos(angle);
+        auto pos_y = r * sin(angle);
+        auto pos_z = z;
+        return G4ThreeVector{pos_x, pos_y, pos_z};
+    };
 
-        G4ParticleGun* particleGun_IC = new G4ParticleGun(5);
-        particleGun_IC->SetParticleDefinition(electron);
-        auto T_IC = 7.6*keV;
-        particleGun_IC -> SetParticleEnergy(T_IC);
-        auto p_IC = G4RandomDirection();
-        particleGun_IC-> SetParticleMomentumDirection(p_IC);
+    auto generate_vertex = [&direction] {
+        auto vertex = std::make_unique<G4PrimaryVertex>();
+        auto pos = direction();
+        vertex -> SetPosition(pos.x(), pos.y(), pos.z());
+        return vertex;
+    };
 
-        
-        G4ParticleGun* particleGun_A = new G4ParticleGun(6);
-        particleGun_A->SetParticleDefinition(electron);
-        auto T_A = 1.8*keV;
-        particleGun_A -> SetParticleEnergy(T_A);
-        auto p_A = G4RandomDirection();
-        particleGun_A-> SetParticleMomentumDirection(p_A);
+    auto electron       = n4::find_particle("e-");
+    auto optical_photon = n4::find_particle("opticalphoton");
+    auto gamma          = n4::find_particle("gamma");
 
-        r = G4RandFlat::shoot( 0., meshBracket_rad_);
-        angle = G4RandFlat::shoot( 0., 2*M_PI);
-        z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        pos_x = r * cos(angle);
-        pos_y = r * sin(angle);
-        pos_z = z;
-        particleGun_A->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_A->GeneratePrimaryVertex(event);
-        particleGun_IC->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_IC->GeneratePrimaryVertex(event);
-
+    if (random_event_1 == 0) {
+        G4cout << "********************************** DECAY 1 = 0.76 **********************************" << G4endl;
+        auto vertex = generate_vertex();
+        add_particle_to_vertex(vertex.get(), electron, 30 * keV);
+        add_particle_to_vertex(vertex.get(), electron,  2 *keV);
+        event -> AddPrimaryVertex(vertex.release());
+    } else if (random_event_1 == 1) {
+      G4cout << "********************************** DECAY 1 = 0.09 **********************************" << G4endl;
+        auto vertex = generate_vertex();
+        add_particle_to_vertex(vertex.get(), electron, 18 * keV);
+        add_particle_to_vertex(vertex.get(), electron, 10 * keV);
+        add_particle_to_vertex(vertex.get(), electron,  2 * keV);
+        add_particle_to_vertex(vertex.get(), electron,  2 *keV);
+        event -> AddPrimaryVertex(vertex.release());
+    } else if (random_event_1 == 2) {
+      G4cout << "********************************** DECAY 1 = 0.15 **********************************" << G4endl;
+        auto vertex = generate_vertex();
+        add_particle_to_vertex(vertex.get(), electron      , 18 * keV);
+        add_particle_to_vertex(vertex.get(), optical_photon, 12 * keV);
+        add_particle_to_vertex(vertex.get(), electron      ,  2 * keV);
+        event -> AddPrimaryVertex(vertex.release());
     }
-    else if (random_event_2 == 1)
-    {
+
+    if (random_event_2 == 0) {
+        G4cout << "********************************** DECAY 2 = 0.95 **********************************" << G4endl;
+        auto vertex = generate_vertex();
+        add_particle_to_vertex(vertex.get(), electron, 7.6 * keV);
+        add_particle_to_vertex(vertex.get(), electron, 1.8 * keV);
+        event -> AddPrimaryVertex(vertex.release());
+    } else if (random_event_2 == 1) {
         G4cout << "********************************** DECAY 2 = 0.05 **********************************" << G4endl;
-
-        auto gamma = nain4::find_particle("gamma");
-        //gamma -> SetVisAttributes(new G4VisAttributes(G4Color(0., 0., 1.)));
-
-        G4ParticleGun* particleGun_gamma = new G4ParticleGun(5);
-        particleGun_gamma->SetParticleDefinition(gamma);
-        auto T_gamma = 9.4*keV;
-        particleGun_gamma -> SetParticleEnergy(T_gamma);
-        auto p_gamma = G4RandomDirection();
-        particleGun_gamma-> SetParticleMomentumDirection(p_gamma);
-
-        r = G4RandFlat::shoot( 0., meshBracket_rad_);
-        angle = G4RandFlat::shoot( 0., 2*M_PI);
-        z = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-        pos_x = r * cos(angle);
-        pos_y = r * sin(angle);
-        pos_z = z;
-        particleGun_gamma->SetParticlePosition(G4ThreeVector(pos_x, pos_y, pos_z));
-        particleGun_gamma->GeneratePrimaryVertex(event);
+        auto vertex = generate_vertex();
+        add_particle_to_vertex(vertex.get(), gamma      , 9.4 * keV);
+        event -> AddPrimaryVertex(vertex.release());
         }
 }
 
@@ -333,33 +190,25 @@ void generate_Co57(G4Event* event, G4ThreeVector position, G4double time){
     std::discrete_distribution<int> dis_2(probabilities_2.begin(), probabilities_2.end());
     int random_event_2 = dis_2(gen);
     
-    if (random_event_1 == 0)
-    {
-
+    if (random_event_1 == 0) {
         //G4cout << "********************************** DECAY 1 **********************************" << G4endl;
         auto particle_1 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_1 = new G4ParticleGun(1);
-        particleGun_1->SetParticleDefinition(particle_1);
-        auto T_1 = 122.*keV;
-        particleGun_1 -> SetParticleEnergy(T_1);
-        auto p_1 = G4RandomDirection();
-        particleGun_1-> SetParticleMomentumDirection(p_1);
-        particleGun_1->SetParticlePosition(position);
-        particleGun_1->GeneratePrimaryVertex(event);
+        particleGun_1 -> SetParticleDefinition(particle_1);
+        particleGun_1 -> SetParticleEnergy(122*keV);
+        particleGun_1 -> SetParticleMomentumDirection(G4RandomDirection());
+        particleGun_1 -> SetParticlePosition(position);
+        particleGun_1 -> GeneratePrimaryVertex(event);
 
-    }
-    if (random_event_2 == 0)
-    {
+    } if (random_event_2 == 0) {
         //G4cout << "********************************** DECAY 2 **********************************" << G4endl;
         auto particle_2 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_2 = new G4ParticleGun(2);
-        particleGun_2->SetParticleDefinition(particle_2);
-        auto T_2 = 136.*keV;
-        particleGun_2 -> SetParticleEnergy(T_2);
-        auto p_2 = G4RandomDirection();
-        particleGun_2-> SetParticleMomentumDirection(p_2);
-        particleGun_2->SetParticlePosition(position);
-        particleGun_2->GeneratePrimaryVertex(event);
+        particleGun_2 -> SetParticleDefinition(particle_2);
+        particleGun_2 -> SetParticleEnergy(136*keV);
+        particleGun_2 -> SetParticleMomentumDirection(G4RandomDirection());
+        particleGun_2 -> SetParticlePosition(position);
+        particleGun_2 -> GeneratePrimaryVertex(event);
     }
 }
 
@@ -392,9 +241,7 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
     std::discrete_distribution<int> dis_4(probabilities_4.begin(), probabilities_4.end());
     int random_event_4 = dis_4(gen);  
     
-    if (random_event_1 == 0)
-    {
-
+    if (random_event_1 == 0) {
         //G4cout << "********************************** DECAY 1 **********************************" << G4endl;
         auto particle_1 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_1 = new G4ParticleGun(1);
@@ -407,8 +254,7 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
         particleGun_1->GeneratePrimaryVertex(event);
 
     }
-    if (random_event_2 == 0)
-    {
+    if (random_event_2 == 0) {
         //G4cout << "********************************** DECAY 2 **********************************" << G4endl;
         auto particle_2 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_2 = new G4ParticleGun(2);
@@ -421,32 +267,26 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
         particleGun_2->GeneratePrimaryVertex(event);
     }
 
-    if (random_event_3 == 0)
-    {
+    if (random_event_3 == 0) {
         //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
         auto particle_3 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_3 = new G4ParticleGun(3);
-        particleGun_3->SetParticleDefinition(particle_3);
-        auto T_3 = 81.*keV;
-        particleGun_3 -> SetParticleEnergy(T_3);
-        auto p_3 = G4RandomDirection();
-        particleGun_3-> SetParticleMomentumDirection(p_3);
-        particleGun_3->SetParticlePosition(position);
-        particleGun_3->GeneratePrimaryVertex(event);
+        particleGun_3 -> SetParticleDefinition(particle_3);
+        particleGun_3 -> SetParticleEnergy(81*keV);
+        particleGun_3 -> SetParticleMomentumDirection(G4RandomDirection());
+        particleGun_3 -> SetParticlePosition(position);
+        particleGun_3 -> GeneratePrimaryVertex(event);
     }
 
-    if (random_event_4 == 0)
-    {
+    if (random_event_4 == 0) {
         //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
         auto particle_4 = nain4::find_particle("gamma");
         G4ParticleGun* particleGun_4 = new G4ParticleGun(4);
-        particleGun_4->SetParticleDefinition(particle_4);
-        auto T_4 = 303.*keV;
-        particleGun_4 -> SetParticleEnergy(T_4);
-        auto p_4 = G4RandomDirection();
-        particleGun_4-> SetParticleMomentumDirection(p_4);
-        particleGun_4->SetParticlePosition(position);
-        particleGun_4->GeneratePrimaryVertex(event);
+        particleGun_4 -> SetParticleDefinition(particle_4);
+        particleGun_4 -> SetParticleEnergy(303*keV);
+        particleGun_4 -> SetParticleMomentumDirection(G4RandomDirection());
+        particleGun_4 -> SetParticlePosition(position);
+        particleGun_4 -> GeneratePrimaryVertex(event);
     }
 }
    
@@ -454,7 +294,7 @@ void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double time){
 
     G4ParticleGun* particleGun = new G4ParticleGun(1);
 
-    auto IonName = "Kr83m";
+    std::string IonName{"Kr83m"};
 
     G4int A;
     G4int Z;
@@ -463,35 +303,19 @@ void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double time){
     auto T= 0.*keV;
     auto p = G4RandomDirection();
 
-    if (IonName == "Co57"){
-        Z = 27;
-        A = 57;
-    }
-    else if (IonName == "Ba133"){
-        Z = 56;
-        A = 133;
-    }
-    else if (IonName == "Am241"){
-        Z = 95;
-        A = 241;
-    }
-    else if (IonName == "Fe55"){
-        Z=26;
-        A=55;
-    }
-    else if (IonName == "Kr83m"){
-        Z= 36;
-        A= 83;
-        E= 41.557 * keV;
-    }
+    if      (IonName == "Co57" ) { Z = 27; A =  57; }
+    else if (IonName == "Ba133") { Z = 56; A = 133; }
+    else if (IonName == "Am241") { Z = 95; A = 241; }
+    else if (IonName == "Fe55" ) { Z = 26; A =  55; }
+    else if (IonName == "Kr83m") { Z = 36; A =  83; E = 41.557 * keV; }
 
     G4ParticleDefinition* ion = G4IonTable:: GetIonTable() -> GetIon(Z, A, E);
 
     particleGun -> SetParticleDefinition(ion);
-    particleGun->SetParticlePosition(position);
+    particleGun -> SetParticlePosition(position);
     particleGun -> SetParticleEnergy(T);
-    particleGun->SetParticleMomentumDirection(p);
-    particleGun->SetParticleCharge(charge);
+    particleGun -> SetParticleMomentumDirection(p);
+    particleGun -> SetParticleCharge(charge);
 
     particleGun->GeneratePrimaryVertex(event);
 
@@ -761,7 +585,7 @@ auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &c
         //G4cout << "******************************* " << "NUEVO TRACK AÑADIDO " << trackID << " *******************************"  << G4endl;
     };
 
-    auto delete_file_long = [& filename_step, & eventCounter](G4Run const* run){
+    auto delete_file_long = [&filename_step, & eventCounter](G4Run const* run){
 
     std::ofstream file(filename_step, std::ios::out);
     int colWidth = 20;
