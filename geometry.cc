@@ -44,8 +44,16 @@ void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Mat
   G4double meshHolder_y = 5*mm + meshBracket_rad_ * sin(45*deg);
   G4double meshHolder_z = -13.005*mm + meshHolder_length_/2 ;
 
-  for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
-    n4::place(logic_meshHolder).in(vessel).rotate_z(angle*deg).at(-meshHolder_x, -meshHolder_y, -meshHolder_z).copy_no(i).check_overlaps().now();
+  auto mesh_holder = n4::place(logic_meshHolder).in(vessel)
+    .rotate_z(135*deg)                             // Orient the mesh holder
+    .at(meshHolder_x, meshHolder_y, -meshHolder_z) // Displace from the center
+    .check_overlaps();
+
+  for (auto i : {0,1,2,3}) {
+    mesh_holder                                    // Without .clone() rotations are cumulative
+      .rotate_z(90 * deg)                          // Add 90 deg
+      .copy_no(i)
+      .now();
   }
 
   //Steel Bar joining Mesh holder and PMT clad
