@@ -333,10 +333,10 @@ G4PVPlacement* geometry() {
     pos_enclosurevac_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, relativevac_pmt_z);
     pos = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, 0.);
 
-    G4VSolid*solid_enclosure_pmt = new G4SubtractionSolid("EnclosurePMT_Sub", solid_enclosure_pmt, solid_pmt,  0, pos_enclosure_pmt);
-    G4VSolid*solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub", solid_enclosurevac_pmt, solid_pmt,  0, pos_enclosurevac_pmt);
-    G4VSolid*solid_pmtHolder = new G4SubtractionSolid("PMTHolder_Sub", solid_pmtHolder, solid_pmt,  0, pos);
-    G4VSolid*solid_plate1_pmt = new G4SubtractionSolid("PMTplateBottom1_Sub", solid_plate1_pmt, solid_pmt,  0, pos);
+    solid_enclosure_pmt    = new G4SubtractionSolid("EnclosurePMT_Sub"    , solid_enclosure_pmt    , solid_pmt, 0, pos_enclosure_pmt);
+    solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub" , solid_enclosurevac_pmt , solid_pmt, 0, pos_enclosurevac_pmt);
+    solid_pmtHolder        = new G4SubtractionSolid("PMTHolder_Sub"       , solid_pmtHolder        , solid_pmt, 0, pos);
+    solid_plate1_pmt       = new G4SubtractionSolid("PMTplateBottom1_Sub" , solid_plate1_pmt       , solid_pmt, 0, pos);
   }
 
   G4LogicalVolume *logic_enclosure_pmt = new G4LogicalVolume(solid_enclosure_pmt, steel, "EnclosurePMT");
