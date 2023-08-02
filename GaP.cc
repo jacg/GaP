@@ -128,15 +128,22 @@ void generate_particles_in_event(
     std::vector<std::tuple<G4ParticleDefinition*, G4double>> const & particles_and_energies
 ) { return generate_particles_in_event(event, [&position] { return position; }, particles_and_energies); }
 
+void banner(G4String msg) {
+    G4cout << "********************************** " << msg << " **********************************" << G4endl;
+}
+
 void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
 
-    //Decay 1
+    auto electron       = n4::find_particle("e-");
+    auto optical_photon = n4::find_particle("opticalphoton");
+    auto gamma          = n4::find_particle("gamma");
+
     auto p_t1_ic_1au = 0.76;
     auto p_t1_ic_2au = 0.09;
     auto p_t1_ic_1au_xray = 1 - p_t1_ic_1au - p_t1_ic_2au;
     static auto distribution_1 = n4::random::biased_choice{{p_t1_ic_1au, p_t1_ic_2au, p_t1_ic_1au_xray}};
 
-    //Decay 2 //falta tener en cuenta el tiempo medio de las partículas
+    // falta tener en cuenta el tiempo medio de las partículas
     auto p_t2_ic_1au = 0.95;
     auto p_t2_xray = 1 - p_t2_ic_1au;
     static auto distribution_2 = n4::random::biased_choice{{p_t2_ic_1au, p_t2_xray}};
@@ -144,33 +151,29 @@ void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
     auto random_event_1 = distribution_1();
     auto random_event_2 = distribution_2();
 
-    auto electron       = n4::find_particle("e-");
-    auto optical_photon = n4::find_particle("opticalphoton");
-    auto gamma          = n4::find_particle("gamma");
-
     if (random_event_1 == 0) {
-        G4cout << "********************************** DECAY 1 = 0.76 **********************************" << G4endl;
+        banner("DECAY 1 = 0.76");
         generate_particles_in_event(event, position_active_volume, {{electron, 30 * keV},
                                                                     {electron,  2 * keV}});
     } else if (random_event_1 == 1) {
-        G4cout << "********************************** DECAY 1 = 0.09 **********************************" << G4endl;
+        banner("DECAY 1 = 0.09");
         generate_particles_in_event(event, position_active_volume, {{electron, 18 * keV},
                                                                     {electron, 10 * keV},
                                                                     {electron,  2 * keV},
                                                                     {electron,  2 * keV}});
     } else if (random_event_1 == 2) {
-        G4cout << "********************************** DECAY 1 = 0.15 **********************************" << G4endl;
+        banner("DECAY 1 = 0.15");
         generate_particles_in_event(event, position_active_volume, {{ electron      , 18 * keV},
                                                                     { optical_photon, 12 * keV},   // This energy looks suspicious for an optical photon
                                                                     { electron      ,  2 * keV}});
     }
 
     if (random_event_2 == 0) {
-        G4cout << "********************************** DECAY 2 = 0.95 **********************************" << G4endl;
+        banner("DECAY 2 = 0.95");
         generate_particles_in_event(event, position_active_volume, {{electron, 7.6 * keV},
                                                                     {electron, 1.8 * keV}});
     } else if (random_event_2 == 1) {
-        G4cout << "********************************** DECAY 2 = 0.05 **********************************" << G4endl;
+        banner("DECAY 2 = 0.05");
         generate_particles_in_event(event, position_active_volume, {{gamma, 9.4 * keV}});
     }
 }
@@ -179,76 +182,58 @@ void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
 void generate_Co57(G4Event* event, G4ThreeVector position, G4double time){
 
     G4double lifetime = 271.8 * year;
-    //G4cout << "********************************** " << time << " **********************************" << G4endl;
+    banner("time");
+
+    auto gamma          = n4::find_particle("gamma");
     
-    //Decay 1
     auto p_xray_122 = 0.86;
     auto p_no_xray_122  = 1 - p_xray_122;
     static auto distribution_1 = n4::random::biased_choice{{p_xray_122, p_no_xray_122}};
-    auto random_event_1 = distribution_1();
 
-    //Decay 2
     auto p_xray_136 = 0.11;
     auto p_no_xray_136  = 1 - p_xray_136;
     static auto distribution_2 = n4::random::biased_choice{{p_xray_136, p_no_xray_136}};
+
+
+    auto random_event_1 = distribution_1();
     auto random_event_2 = distribution_2();
-    auto gamma          = n4::find_particle("gamma");
 
-    if (random_event_1 == 0) {
-        //G4cout << "********************************** DECAY 1 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 122 * keV}});
-    } if (random_event_2 == 0) {
-        //G4cout << "********************************** DECAY 2 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 136 * keV}});
-    }
+    if (random_event_1 == 0) { banner("DECAY 1"); generate_particles_in_event(event, position, {{gamma, 122 * keV}}); }
+    if (random_event_2 == 0) { banner("DECAY 2"); generate_particles_in_event(event, position, {{gamma, 136 * keV}}); }
 }
-
 
 void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
 
     //G4double lifetime = XXX * year;
-    //G4cout << "********************************** " << time << " **********************************" << G4endl;
+    //banner("time")
+    auto gamma = n4::find_particle("gamma");
     
     auto p_xray = 0.99;
     auto p_no_xray = 1 - p_xray;
     static auto distribution_1 = n4::random::biased_choice{{p_xray, p_no_xray}};
-    auto random_event_1 = distribution_1();
 
     auto p_gamma_356 = 0.62;
     auto p_no_gamma_356 = 1 - p_gamma_356;
     static auto distribution_2 = n4::random::biased_choice{{p_gamma_356, p_no_gamma_356}};
-    auto random_event_2 = distribution_2();
 
     auto p_gamma_81 = 0.34;
     auto p_no_gamma_81 = 1 - p_gamma_81;
     static auto distribution_3 = n4::random::biased_choice{{p_gamma_81, p_no_gamma_81}};
-    auto random_event_3 = distribution_3();
 
     auto p_gamma_303 = 0.18;
     auto p_no_gamma_303 = 1 - p_gamma_303;
     static auto distribution_4 = n4::random::biased_choice{{p_gamma_303, p_no_gamma_303}};
+
+
+    auto random_event_1 = distribution_1();
+    auto random_event_2 = distribution_2();
+    auto random_event_3 = distribution_3();
     auto random_event_4 = distribution_4();
 
-    auto gamma = n4::find_particle("gamma");
-
-    if (random_event_1 == 0) {
-        //G4cout << "********************************** DECAY 1 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 31 * keV}});
-    }
-    if (random_event_2 == 0) {
-        //G4cout << "********************************** DECAY 2 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 356 * keV}});
-    }
-
-    if (random_event_3 == 0) {
-        //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 81 * keV}});
-    }
-
-    if (random_event_4 == 0) {
-        //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
-        generate_particles_in_event(event, position, {{gamma, 303 * keV}});
-    }
+    if (random_event_1 == 0) { /*banner("DECAY 1");*/ generate_particles_in_event(event, position, {{gamma,  31 * keV}}); }
+    if (random_event_2 == 0) { /*banner("DECAY 2");*/ generate_particles_in_event(event, position, {{gamma, 356 * keV}}); }
+    if (random_event_3 == 0) { /*banner("DECAY 3");*/ generate_particles_in_event(event, position, {{gamma,  81 * keV}}); }
+    if (random_event_4 == 0) { /*banner("DECAY 4");*/ generate_particles_in_event(event, position, {{gamma, 303 * keV}}); }
 }
    
 void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double time){
