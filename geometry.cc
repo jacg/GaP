@@ -63,13 +63,13 @@ G4PVPlacement* geometry() {
   G4double sc_yield_          = 1./GeV;
   //G4double sc_yield_        =  1000./MeV;
   G4double elifetime_         = 1e6* ms;
-  G4double drift_vel_         = 1. * mm/microsecond;
-  G4double drift_transv_diff_ = 1. * mm/sqrt(cm);
-  G4double drift_long_diff_   = .3 * mm/sqrt(cm);
-  G4double el_field_          = 16.0 * kilovolt/cm;
-  G4double el_vel_            = 3. * mm/microsecond;
-  G4double el_transv_diff_    = 1. * mm/sqrt(cm);
-  G4double el_long_diff_      = .3 * mm/sqrt(cm);
+  // G4double drift_vel_         = 1. * mm/microsecond;
+  // G4double drift_transv_diff_ = 1. * mm/sqrt(cm);
+  // G4double drift_long_diff_   = .3 * mm/sqrt(cm);
+  // G4double el_field_          = 16.0 * kilovolt/cm;
+  // G4double el_vel_            = 3. * mm/microsecond;
+  // G4double el_transv_diff_    = 1. * mm/sqrt(cm);
+  // G4double el_long_diff_      = .3 * mm/sqrt(cm);
 
   auto Cu = n4::material("G4_Cu");
   auto vacuum = n4::material("G4_Galactic");
