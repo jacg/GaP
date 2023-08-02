@@ -90,8 +90,11 @@ void generate_inside(G4Event* event, G4double /*time*/){
 }
 
 void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* particle, G4double energy) {
-    auto dir = G4RandomDirection() * energy / CLHEP::c_light;
-    vertex -> SetPrimary(new G4PrimaryParticle(particle, dir.x(), dir.y(), dir.z()));
+    auto primary = new G4PrimaryParticle(particle);
+    primary -> SetKineticEnergy(energy);
+    primary -> SetMomentumDirection(G4RandomDirection());
+    // primary -> SetCharge(...)  if needed eventually
+    vertex -> SetPrimary(primary);
 };
 
 G4ThreeVector position_active_volume() {
@@ -237,35 +240,24 @@ void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
 }
    
 void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double time){
-
-    G4ParticleGun* particleGun = new G4ParticleGun(1);
-
     std::string IonName{"Kr83m"};
 
-    G4int A;
-    G4int Z;
-    G4double E = 0.;
-    G4double charge = 0. * eplus;
-    auto T= 0.*keV;
-    auto p = G4RandomDirection();
+    G4int A, Z;
+    G4double E = 0;
+    //G4double charge = 0 * eplus;
+    auto T = 0*keV;
 
     if      (IonName == "Co57" ) { Z = 27; A =  57; }
     else if (IonName == "Ba133") { Z = 56; A = 133; }
     else if (IonName == "Am241") { Z = 95; A = 241; }
     else if (IonName == "Fe55" ) { Z = 26; A =  55; }
     else if (IonName == "Kr83m") { Z = 36; A =  83; E = 41.557 * keV; }
+    else { throw "Unknown ion name: " + IonName; }
 
     G4ParticleDefinition* ion = G4IonTable:: GetIonTable() -> GetIon(Z, A, E);
 
-    particleGun -> SetParticleDefinition(ion);
-    particleGun -> SetParticlePosition(position);
-    particleGun -> SetParticleEnergy(T);
-    particleGun -> SetParticleMomentumDirection(p);
-    particleGun -> SetParticleCharge(charge);
-
-    particleGun->GeneratePrimaryVertex(event);
-
-    delete particleGun;
+    // TODO: is the charge really needed?
+    generate_particles_in_event(event, position, {{ion, T}});
 }
 
 
