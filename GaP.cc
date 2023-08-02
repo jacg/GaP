@@ -206,78 +206,48 @@ void generate_Co57(G4Event* event, G4ThreeVector position, G4double time){
 
 void generate_Ba133(G4Event* event, G4ThreeVector position, G4double time){
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    
     //G4double lifetime = XXX * year;
     //G4cout << "********************************** " << time << " **********************************" << G4endl;
     
-    //Decay 1
-    std::vector<double> probabilities_1 = {0.99, 0.01};
-    std::discrete_distribution<int> dis_1(probabilities_1.begin(), probabilities_1.end());
-    int random_event_1 = dis_1(gen);
-    
-    //Decay 2
-    std::vector<double> probabilities_2 = {0.62, 0.38};
-    std::discrete_distribution<int> dis_2(probabilities_2.begin(), probabilities_2.end());
-    int random_event_2 = dis_2(gen);
-    
-    //Decay 3
-    std::vector<double> probabilities_3 = {0.34,0.66};
-    std::discrete_distribution<int> dis_3(probabilities_3.begin(), probabilities_3.end());
-    int random_event_3 = dis_3(gen);    
-    
-    //Decay 4
-    std::vector<double> probabilities_4 = {0.18,0.82};
-    std::discrete_distribution<int> dis_4(probabilities_4.begin(), probabilities_4.end());
-    int random_event_4 = dis_4(gen);  
-    
+    auto p_xray = 0.99;
+    auto p_no_xray = 1 - p_xray;
+    static auto distribution_1 = n4::random::biased_choice{{p_xray, p_no_xray}};
+    auto random_event_1 = distribution_1();
+
+    auto p_gamma_356 = 0.62;
+    auto p_no_gamma_356 = 1 - p_gamma_356;
+    static auto distribution_2 = n4::random::biased_choice{{p_gamma_356, p_no_gamma_356}};
+    auto random_event_2 = distribution_2();
+
+    auto p_gamma_81 = 0.34;
+    auto p_no_gamma_81 = 1 - p_gamma_81;
+    static auto distribution_3 = n4::random::biased_choice{{p_gamma_81, p_no_gamma_81}};
+    auto random_event_3 = distribution_3();
+
+    auto p_gamma_303 = 0.18;
+    auto p_no_gamma_303 = 1 - p_gamma_303;
+    static auto distribution_4 = n4::random::biased_choice{{p_gamma_303, p_no_gamma_303}};
+    auto random_event_4 = distribution_4();
+
+    auto gamma = n4::find_particle("gamma");
+
     if (random_event_1 == 0) {
         //G4cout << "********************************** DECAY 1 **********************************" << G4endl;
-        auto particle_1 = nain4::find_particle("gamma");
-        G4ParticleGun* particleGun_1 = new G4ParticleGun(1);
-        particleGun_1->SetParticleDefinition(particle_1);
-        auto T_1 = 31.*keV;
-        particleGun_1 -> SetParticleEnergy(T_1);
-        auto p_1 = G4RandomDirection();
-        particleGun_1-> SetParticleMomentumDirection(p_1);
-        particleGun_1->SetParticlePosition(position);
-        particleGun_1->GeneratePrimaryVertex(event);
-
+        generate_particles_in_event(event, position, {{gamma, 31 * keV}});
     }
     if (random_event_2 == 0) {
         //G4cout << "********************************** DECAY 2 **********************************" << G4endl;
-        auto particle_2 = nain4::find_particle("gamma");
-        G4ParticleGun* particleGun_2 = new G4ParticleGun(2);
-        particleGun_2->SetParticleDefinition(particle_2);
-        auto T_2 = 356.*keV;
-        particleGun_2 -> SetParticleEnergy(T_2);
-        auto p_2 = G4RandomDirection();
-        particleGun_2-> SetParticleMomentumDirection(p_2);
-        particleGun_2->SetParticlePosition(position);
-        particleGun_2->GeneratePrimaryVertex(event);
+        generate_particles_in_event(event, position, {{gamma, 356 * keV}});
     }
 
     if (random_event_3 == 0) {
         //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
-        auto particle_3 = nain4::find_particle("gamma");
-        G4ParticleGun* particleGun_3 = new G4ParticleGun(3);
-        particleGun_3 -> SetParticleDefinition(particle_3);
-        particleGun_3 -> SetParticleEnergy(81*keV);
-        particleGun_3 -> SetParticleMomentumDirection(G4RandomDirection());
-        particleGun_3 -> SetParticlePosition(position);
-        particleGun_3 -> GeneratePrimaryVertex(event);
+        generate_particles_in_event(event, position, {{gamma, 81 * keV}});
     }
 
     if (random_event_4 == 0) {
         //G4cout << "********************************** DECAY 3 **********************************" << G4endl;
-        auto particle_4 = nain4::find_particle("gamma");
-        G4ParticleGun* particleGun_4 = new G4ParticleGun(4);
-        particleGun_4 -> SetParticleDefinition(particle_4);
-        particleGun_4 -> SetParticleEnergy(303*keV);
-        particleGun_4 -> SetParticleMomentumDirection(G4RandomDirection());
-        particleGun_4 -> SetParticlePosition(position);
-        particleGun_4 -> GeneratePrimaryVertex(event);
+        generate_particles_in_event(event, position, {{gamma, 303 * keV}});
     }
 }
    
