@@ -59,7 +59,7 @@ void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Mat
   auto i = 1;
   for   (auto y : {meshHolderBar_xy, -meshHolderBar_xy}) {
     for (auto x : {meshHolderBar_xy, -meshHolderBar_xy}) {
-      n4::place(meshHolderBar).in(vessel).at(meshHolderBar_xy,  meshHolderBar_xy, -meshHolderBar_z).copy_no(i++).check_overlaps().now();
+      n4::place(meshHolderBar).in(vessel).at(x, y, -meshHolderBar_z).copy_no(i++).check_overlaps().now();
     }
   }
 }
