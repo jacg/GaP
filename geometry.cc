@@ -18,7 +18,6 @@
 #include <iostream>
 
 G4PVPlacement* geometry() {
-
   auto model_new_= 1;
 
   G4double world_size = 0.5 * m;
@@ -57,21 +56,20 @@ G4PVPlacement* geometry() {
   G4double quartz_window_thickn_ = 3       *mm;
   G4double tpb_coating_thickn_   = 3       *micrometer;
 
-  G4double photoe_prob_       (0.);
-
-  G4double pressure_          (10.* bar);
-  G4double temperature_       (293. * kelvin);
-  //G4double sc_yield_          (22222./MeV); // Wsc = 45 eV, fr
-  G4double sc_yield_          (1./GeV);
-  //G4double sc_yield_          (1000./MeV);
-  G4double elifetime_         (1e6* ms);
-  G4double drift_vel_         (1. * mm/microsecond);
-  G4double drift_transv_diff_ (1. * mm/sqrt(cm));
-  G4double drift_long_diff_   (.3 * mm/sqrt(cm));
-  G4double el_field_          (16.0 * kilovolt/cm);
-  G4double el_vel_            (3. * mm/microsecond);
-  G4double el_transv_diff_    (1. * mm/sqrt(cm));
-  G4double el_long_diff_      (.3 * mm/sqrt(cm));
+  G4double photoe_prob_       = 0.;
+  G4double pressure_          = 10.* bar;
+  G4double temperature_       = 293. * kelvin;
+  //G4double sc_yield_        =  22222./MeV; // Wsc = 45 eV, fr
+  G4double sc_yield_          = 1./GeV;
+  //G4double sc_yield_        =  1000./MeV;
+  G4double elifetime_         = 1e6* ms;
+  G4double drift_vel_         = 1. * mm/microsecond;
+  G4double drift_transv_diff_ = 1. * mm/sqrt(cm);
+  G4double drift_long_diff_   = .3 * mm/sqrt(cm);
+  G4double el_field_          = 16.0 * kilovolt/cm;
+  G4double el_vel_            = 3. * mm/microsecond;
+  G4double el_transv_diff_    = 1. * mm/sqrt(cm);
+  G4double el_long_diff_      = .3 * mm/sqrt(cm);
 
   auto Cu = n4::material("G4_Cu");
   auto vacuum = n4::material("G4_Galactic");
