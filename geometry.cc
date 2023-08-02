@@ -392,14 +392,17 @@ G4PVPlacement* geometry() {
     //Steel Bar joining Mesh holder and PMT clad
     G4double meshHolderBar_rad_     = 9./2   *mm;
     G4double meshHolderBar_length_  = 35.75  *mm;
-
-    auto meshHolderBar = n4::volume<G4Tubs>("MeshHolderBar", steel, 0., meshHolderBar_rad_, (meshHolderBar_length_)/2, 0., 360.*deg);
     G4double meshHolderBar_xy = 73.769*mm;
     G4double meshHolderBar_z  = meshHolder_z + meshHolder_length_/2 + meshHolderBar_length_/2 ;
-    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(1).check_overlaps().now();
-    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, meshHolderBar_xy, -meshHolderBar_z}).copy_no(2).check_overlaps().now();
-    n4::place(meshHolderBar).in(vessel).at({meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(3).check_overlaps().now();
-    n4::place(meshHolderBar).in(vessel).at({-meshHolderBar_xy, -meshHolderBar_xy, -meshHolderBar_z}).copy_no(4).check_overlaps().now();
+
+
+    auto meshHolderBar = n4::tubs("MeshHolderBar").r(meshHolderBar_rad_).z(meshHolderBar_length_).volume(steel);
+    auto i = 1;
+    for   (auto y : {meshHolderBar_xy, -meshHolderBar_xy}) {
+      for (auto x : {meshHolderBar_xy, -meshHolderBar_xy}) {
+        n4::place(meshHolderBar).in(vessel).at(meshHolderBar_xy,  meshHolderBar_xy, -meshHolderBar_z).copy_no(i++).check_overlaps().now();
+      }
+    }
   }
   return n4::place(world).now();
 }
