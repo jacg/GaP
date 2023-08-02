@@ -105,13 +105,6 @@ G4PVPlacement* geometry() {
   G4double drift_r;
 
   if (model_new_ == 0) {
-
-    G4double d             =   3     * mm;
-    G4double D             =   5     * mm;
-    G4double ring_rad_int_ = 130 /2. * mm;
-    G4double ring_rad_out_ = 140 /2. * mm;
-    G4double ring_thickn_  =  10     * mm;
-
     cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
     //auto cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
 
@@ -119,6 +112,22 @@ G4PVPlacement* geometry() {
     cathBracket_z = cathode_z;
     //auto cathBracket_z = 8.005*mm - meshBracket_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;
 
+    //Gas
+    drift_length_ = 96*mm - meshBracket_thickn_ ;
+    el_length_    = 15*mm - anodeBracket_thickn_/2;
+
+    // Drift
+    drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    drift_r = meshBracket_rad_;
+
+
+    G4double d             =   3     * mm;
+    G4double D             =   5     * mm;
+    G4double ring_rad_int_ = 130 /2. * mm;
+    G4double ring_rad_out_ = 140 /2. * mm;
+    G4double ring_thickn_  =  10     * mm;
+
+    // ------------------------------------------------------------------------------------------------------------------------
     //Cu rings
     auto ring = n4::tubs("ring").r_inner(ring_rad_int_).r(ring_rad_out_).z(ring_thickn_).place(Cu).in(vessel).check_overlaps();
     auto first_ring_z = cathode_z - meshBracket_thickn_/2 - D - ring_thickn_/2;
@@ -129,20 +138,11 @@ G4PVPlacement* geometry() {
     // Source box
     auto source_box_width  = 100*mm;
     auto source_box_length =  50*mm;
-    auto source_box_z = cathode_z + 81.64*mm + source_box_length/2;
+    auto source_box_z      = cathode_z + 81.64*mm + source_box_length/2;
     //auto source_box_z = cathode_z ;
     n4::box("source_box").xy(source_box_width).z(source_box_length).place(steel).in(vessel).at(0,0,source_box_z).check_overlaps().now();
 
-    //Gas
-    drift_length_ = 96*mm - meshBracket_thickn_ ;
-    el_length_    = 15*mm - anodeBracket_thickn_/2;
-
-    // Drift
-    drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    drift_r = meshBracket_rad_;
-
   }  else {
-
     cathode_z = 4.505*mm + mesh_thickn_/2;  //cathode center from vessel center
 
     //Cathode Bracket
