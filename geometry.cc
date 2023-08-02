@@ -213,11 +213,9 @@ G4PVPlacement* geometry() {
   }
 
   /////////////////////////
-
   //Quartz Window
-  auto quartz_window = n4::volume<G4Tubs>("QuartzWindow", quartz, 0., quartz_window_rad_, quartz_window_thickn_/2, 0., 360*deg);
   G4double quartz_window_z = 35.495*mm + quartz_window_thickn_/2 ;
-  n4::place(quartz_window).in(vessel).at({0., 0., -quartz_window_z}).check_overlaps().now();
+  n4::tubs("QuartzWindow").r(quartz_window_rad_).z(quartz_window_thickn_).place(quartz).in(vessel).at(0., 0., -quartz_window_z).check_overlaps().now();
 
   //Evaporated TPB
   auto tpb_coating = n4::volume<G4Tubs>("CoatingTPB", tpb, 0., quartz_window_rad_, tpb_coating_thickn_/2, 0., 360*deg);
