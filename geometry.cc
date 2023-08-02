@@ -195,10 +195,11 @@ G4PVPlacement* geometry() {
   G4double anodeHolder_hole_angle_  = 7.965 *deg;
 
 
-  G4Tubs *solid_anodeHolder_block = new G4Tubs("AnodeHolder", anodeHolder_rad_, anodeHolder_rad_+anodeHolder_thickn_, anodeHolder_length_/2, -anodeHolder_angle_/2, anodeHolder_angle_);
-  G4Tubs *solid_anodeHolder_hole = new G4Tubs("AnodeHolderHole", anodeHolder_hole_rad_, anodeHolder_hole_rad_+anodeHolder_hole_thickn_, anodeHolder_hole_length_/2, -anodeHolder_hole_angle_/2, anodeHolder_hole_angle_);
-  G4VSolid        *solidSub_anodeHolder = new G4SubtractionSolid("AnodeHolderHole_Sub", solid_anodeHolder_block, solid_anodeHolder_hole, 0, G4ThreeVector(0,0,anodeHolder_length_/2-anodeHolder_hole_length_/2) );
-  G4LogicalVolume *logic_anodeHolder = new G4LogicalVolume(solidSub_anodeHolder, peek, "AnodeHolder");
+  auto anode_holder = n4::tubs("AnodeHolder"    ).r_inner(anodeHolder_rad_     ).r_delta(anodeHolder_thickn_     ).z(anodeHolder_length_     ).phi_start(-anodeHolder_angle_     /2).phi_delta(anodeHolder_angle_     )
+    .subtract(        n4::tubs("AnodeHolderHole").r_inner(anodeHolder_hole_rad_).r_delta(anodeHolder_hole_thickn_).z(anodeHolder_hole_length_).phi_start(-anodeHolder_hole_angle_/2).phi_delta(anodeHolder_hole_angle_))
+    .at(0, 0, anodeHolder_length_/2 - anodeHolder_hole_length_/2)
+    .volume(peek);
+
 
   G4RotationMatrix* Rot45   = new G4RotationMatrix(); Rot45   -> rotateZ(  45*deg);
   G4RotationMatrix* Rot_45  = new G4RotationMatrix(); Rot_45  -> rotateZ( -45*deg);
@@ -206,10 +207,10 @@ G4PVPlacement* geometry() {
   G4RotationMatrix* Rot_135 = new G4RotationMatrix(); Rot_135 -> rotateZ(-135*deg);
 
   G4double anodeHolder_z = 29.495*mm + anodeHolder_length_/2;
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot135).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_45).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
-  n4::place(logic_anodeHolder).in(vessel).rotate(*Rot_135).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate(*Rot135).at({0., 0., -anodeHolder_z}).copy_no(1).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate(*Rot_45).at({0., 0., -anodeHolder_z}).copy_no(2).check_overlaps().now();
+  n4::place(anode_holder).in(vessel).rotate(*Rot_135).at({0., 0., -anodeHolder_z}).copy_no(3).check_overlaps().now();
 
 
   /////////////////////////
