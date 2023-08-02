@@ -172,9 +172,8 @@ G4PVPlacement* geometry() {
   n4::tubs("gate").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(gas_el).at(0, 0, gate_z).check_overlaps().now();
 
   // Gate Bracket
-  auto gateBracket= n4::volume<G4Tubs>("gateBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
   G4double gateBracket_z = 12.745*mm + meshBracket_thickn_/2;
-  n4::place(gateBracket).in(vessel).at({0, 0, -gateBracket_z}).check_overlaps().now();
+  n4::tubs("gateBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_).place(steel).in(vessel).at(0, 0, -gateBracket_z).check_overlaps().now();
 
   G4RotationMatrix* Rot45 = new G4RotationMatrix();
   Rot45->rotateZ(45*deg);
