@@ -260,16 +260,18 @@ G4PVPlacement* geometry() {
 
   G4double windowHolderTop_block2_z = windowHolderTop_length1_/2 + windowHolderTop_length2_/2 ;
 
-  G4Tubs *solid_windowHolderTop_block1 = new G4Tubs("QuartzWindowHolderTop1", windowHolderTop_rad1_, windowHolderTop_rad2_, windowHolderTop_length1_/2, -windowHolder_angle_/2, windowHolder_angle_);
-  G4Tubs *solid_windowHolderTop_block2 = new G4Tubs("QuartzWindowHolderTop2", windowHolderTop_rad0_, windowHolderTop_rad2_, windowHolderTop_length2_/2, -windowHolder_angle_/2, windowHolder_angle_);
-  G4VSolid        *solidUni_windowHolderTop = new G4UnionSolid("WindowHolderTop_Union", solid_windowHolderTop_block1, solid_windowHolderTop_block2, 0, G4ThreeVector(0,0,-windowHolderTop_block2_z) );
-  G4LogicalVolume *logic_windowHolderTop = new G4LogicalVolume(solidUni_windowHolderTop, peek, "QuartzWindowHolderTop");
+  auto holder_phi = n4::tubs("").phi_start(-windowHolder_angle_/2).phi_delta(windowHolder_angle_);
+  auto logic_windowHolderTop =
+  /*   */holder_phi.        name("QuartzWindowHolderTop1").r_inner(windowHolderTop_rad1_).r(windowHolderTop_rad2_).z(windowHolderTop_length1_)
+    .add(holder_phi.clone().name("QuartzWindowHolderTop2").r_inner(windowHolderTop_rad0_).r(windowHolderTop_rad2_).z(windowHolderTop_length2_)).at(0,0, -windowHolderTop_block2_z)
+    .name("WindowHolderTop_Union")
+    .volume(peek);
+
 
   G4double quartz_windowHolderTop_z = quartz_window_z - quartz_window_thickn_/2 +  windowHolderTop_length1_/2;
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(0).check_overlaps().now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(2).check_overlaps().now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolderTop_z}).copy_no(3).check_overlaps().now();
-  n4::place(logic_windowHolderTop).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolderTop_z}).copy_no(4).check_overlaps().now();
+  for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
+    n4::place(logic_windowHolderTop).in(vessel).rotate_z(angle*deg).at(0, 0, -quartz_windowHolderTop_z).copy_no(i).check_overlaps().now();
+  }
 
   //Build PMT
   //G4double pmt_length_ = pmt_.Length();
