@@ -1,4 +1,4 @@
-# Macro file for the visualization setting in the initialization phase 
+# Macro file for the visualization setting in the initialization phase
 # of the B1 example when running in interactive mode
 #
 
@@ -55,7 +55,7 @@
 #/vis/filtering/trajectories/create/particleFilter
 #/vis/filtering/trajectories/particleFilter-0/add gamma
 /vis/modeling/trajectories/create/drawByParticleID
-/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton yellow 
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton yellow
 /vis/modeling/trajectories/drawByParticleID-0/set nu_e magenta
 #
 # To invert the above, drawing all particles except gammas,
@@ -105,7 +105,7 @@
 #
 # To get nice view
 # Make the "World" box invisible
-/vis/geometry/set/visibility GasVerssel 0 true
+/vis/geometry/set/visibility GasVessel 0 true
 /vis/geometry/set/visibility vessel_steel 0 true
 /vis/geometry/set/visibility world 0 true
 # "Envelope" is transparent blue to represent water
@@ -128,7 +128,7 @@
 /vis/geometry/set/colour gas_el 0 0.8 0.8 0.4 0.4
 /vis/geometry/set/colour gateBracket 0 1 0 1 0.9
 /vis/geometry/set/colour ring 0 0.56 0.28 0 0.9
-#/vis/geometry/set/colour GasVerssel 0 1 1 1 0.2
+#/vis/geometry/set/colour GasVessel 0 1 1 1 0.2
 #/vis/geometry/set/colour vessel_steel 0 1 1 1 0.2
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
@@ -136,3 +136,6 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
+
+/vis/geometry/set/visibility GasVessel 0 false
+/vis/geometry/set/visibility vessel_steel 0 false
