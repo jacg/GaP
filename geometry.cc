@@ -97,11 +97,12 @@ G4PVPlacement* geometry() {
   n4::place(vessel).in(vessel_steel).at({0, 0, 0}).check_overlaps().now();
 
   G4double cathode_z;
+  G4double cathBracket_z;
   G4LogicalVolume * gas_el;
   G4double drift_length_  ;
   G4double el_length_    ;
-
   G4double drift_z;
+  G4double drift_r;
 
   if (model_new_ == 0) {
 
@@ -115,10 +116,8 @@ G4PVPlacement* geometry() {
     //auto cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
 
     // Cathode Bracket
-    auto cathBracket_z = cathode_z;
+    cathBracket_z = cathode_z;
     //auto cathBracket_z = 8.005*mm - meshBracket_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;
-    n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
-      .place(steel).in(vessel).at(0, 0, cathBracket_z).check_overlaps().now();
 
     //Cu rings
     auto ring = n4::tubs("ring").r_inner(ring_rad_int_).r(ring_rad_out_).z(ring_thickn_).place(Cu).in(vessel).check_overlaps();
@@ -140,16 +139,14 @@ G4PVPlacement* geometry() {
 
     // Drift
     drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::tubs("gas_drift").r(meshBracket_rad_).z(drift_length_).place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
+    drift_r = meshBracket_rad_;
 
   }  else {
 
     cathode_z = 4.505*mm + mesh_thickn_/2;  //cathode center from vessel center
 
     //Cathode Bracket
-    G4double cathBracket_z = 8.005*mm - meshBracket_thickn_/2;
-    n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
-      .place(steel).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
+    cathBracket_z = 8.005*mm - meshBracket_thickn_/2;
 
     //Gas
     drift_length_  = 19.825*mm - mesh_thickn_;
@@ -157,12 +154,16 @@ G4PVPlacement* geometry() {
 
     // Drift
     drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::tubs("gas_drift").r(anodeBracket_rad_).z(drift_length_)
-      .place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
+    drift_r = anodeBracket_rad_;
   }
 
   //Cathode
   n4::tubs("cathode").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(vessel).at(0,0,cathode_z).check_overlaps().now();
+
+  n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
+     .place(steel).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
+
+  n4::tubs("gas_drift").r(drift_r).z(drift_length_).place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
 
   // EL gap
   gas_el = n4::tubs("gas_el").r(anodeBracket_rad_).z(el_length_).volume(gas_);
