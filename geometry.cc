@@ -218,9 +218,8 @@ G4PVPlacement* geometry() {
   n4::tubs("QuartzWindow").r(quartz_window_rad_).z(quartz_window_thickn_).place(quartz).in(vessel).at(0., 0., -quartz_window_z).check_overlaps().now();
 
   //Evaporated TPB
-  auto tpb_coating = n4::volume<G4Tubs>("CoatingTPB", tpb, 0., quartz_window_rad_, tpb_coating_thickn_/2, 0., 360*deg);
   G4double tpb_coating_z = quartz_window_z - quartz_window_thickn_/2 - tpb_coating_thickn_/2 ;
-  n4::place(tpb_coating).in(vessel).at({0., 0., -tpb_coating_z}).check_overlaps().now();
+  n4::tubs("CoatingTPB").r(quartz_window_rad_).z(tpb_coating_thickn_).place(tpb).in(vessel).at(0., 0., -tpb_coating_z).check_overlaps().now();
 
   // Peek Quartz Window Holder
   G4double windowHolder_angle_   = 10      *deg;
