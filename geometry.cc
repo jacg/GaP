@@ -222,6 +222,7 @@ G4PVPlacement* geometry() {
   n4::tubs("CoatingTPB").r(quartz_window_rad_).z(tpb_coating_thickn_).place(tpb).in(vessel).at(0., 0., -tpb_coating_z).check_overlaps().now();
 
   // Peek Quartz Window Holder
+
   G4double windowHolder_angle_   = 10      *deg;
   G4double windowHolder_length1_ = 4.       *mm;
   G4double windowHolder_length2_ = 19.      *mm;
@@ -234,18 +235,21 @@ G4PVPlacement* geometry() {
   G4double windowHolder_block2_z = windowHolder_length1_/2 + windowHolder_length2_/2 ;
   G4double windowHolder_block3_z = windowHolder_length3_/2 + windowHolder_length2_/2 + windowHolder_block2_z ;
 
-  G4Tubs *solid_windowHolder_block1 = new G4Tubs("QuartzWindowHolder1", windowHolder_rad0_, windowHolder_rad2_, windowHolder_length1_/2, -windowHolder_angle_/2, windowHolder_angle_);
-  G4Tubs *solid_windowHolder_block2 = new G4Tubs("QuartzWindowHolder2", windowHolder_rad1_, windowHolder_rad2_, windowHolder_length2_/2, -windowHolder_angle_/2, windowHolder_angle_);
-  G4Tubs *solid_windowHolder_block3 = new G4Tubs("QuartzWindowHolder3", windowHolder_rad1_, windowHolder_rad3_, windowHolder_length3_/2, -windowHolder_angle_/2, windowHolder_angle_);
-  G4VSolid        *solidUni_windowHolder0 = new G4UnionSolid("WindowHolder_Union1", solid_windowHolder_block1, solid_windowHolder_block2, 0, G4ThreeVector(0,0,-windowHolder_block2_z) );
-  G4VSolid        *solidUni_windowHolder = new G4UnionSolid("WindowHolder_Union2", solidUni_windowHolder0, solid_windowHolder_block3, 0, G4ThreeVector(0,0,-windowHolder_block3_z) );
-  G4LogicalVolume *logic_windowHolder = new G4LogicalVolume(solidUni_windowHolder, peek, "QuartzWindowHolder");
+  auto window_phi = n4::tubs("").phi_start(-windowHolder_angle_/2).phi_delta(windowHolder_angle_);
+
+
+  auto logic_windowHolder =
+   /*   */window_phi        .name("1").r_inner(windowHolder_rad0_).r(windowHolder_rad2_).z(windowHolder_length1_)
+    .add( window_phi.clone().name("2").r_inner(windowHolder_rad1_).r(windowHolder_rad2_).z(windowHolder_length2_) ).at(0, 0, -windowHolder_block2_z)
+    .add( window_phi.clone().name("3").r_inner(windowHolder_rad1_).r(windowHolder_rad3_).z(windowHolder_length3_) ).at(0, 0, -windowHolder_block3_z)
+    .name("QuartzWindowHolder")
+    .volume(peek);
+
 
   G4double quartz_windowHolder_z = quartz_window_z - quartz_window_thickn_/2 -  windowHolder_length1_/2;
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot45).at({0., 0., -quartz_windowHolder_z}).copy_no(0).check_overlaps().now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot135).at({0., 0., -quartz_windowHolder_z}).copy_no(1).check_overlaps().now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_45).at({0., 0., -quartz_windowHolder_z}).copy_no(2).check_overlaps().now();
-  n4::place(logic_windowHolder).in(vessel).rotate(*Rot_135).at({0., 0., -quartz_windowHolder_z}).copy_no(3).check_overlaps().now();
+  for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
+      n4::place(logic_windowHolder).in(vessel).rotate_z(angle*deg).at(0,0, -quartz_windowHolder_z).copy_no(i).check_overlaps().now();
+  }
 
 
   G4double windowHolderTop_length1_ = 3.  *mm;
