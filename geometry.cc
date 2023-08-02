@@ -175,15 +175,6 @@ G4PVPlacement* geometry() {
   G4double gateBracket_z = 12.745*mm + meshBracket_thickn_/2;
   n4::tubs("gateBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_).place(steel).in(vessel).at(0, 0, -gateBracket_z).check_overlaps().now();
 
-  G4RotationMatrix* Rot45 = new G4RotationMatrix();
-  Rot45->rotateZ(45*deg);
-  G4RotationMatrix* Rot_45 = new G4RotationMatrix();
-  Rot_45->rotateZ(-45*deg);
-  G4RotationMatrix* Rot135 = new G4RotationMatrix();
-  Rot135->rotateZ(135*deg);
-  G4RotationMatrix* Rot_135 = new G4RotationMatrix();
-  Rot_135->rotateZ(-135*deg);
-
   //Anode
   auto anode = n4::volume<G4Tubs>("Anode", mesh_mat, 0.,  mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
   G4double anode_z = - el_length_/2 + mesh_thickn_/2;
@@ -210,6 +201,11 @@ G4PVPlacement* geometry() {
   G4Tubs *solid_anodeHolder_hole = new G4Tubs("AnodeHolderHole", anodeHolder_hole_rad_, anodeHolder_hole_rad_+anodeHolder_hole_thickn_, anodeHolder_hole_length_/2, -anodeHolder_hole_angle_/2, anodeHolder_hole_angle_);
   G4VSolid        *solidSub_anodeHolder = new G4SubtractionSolid("AnodeHolderHole_Sub", solid_anodeHolder_block, solid_anodeHolder_hole, 0, G4ThreeVector(0,0,anodeHolder_length_/2-anodeHolder_hole_length_/2) );
   G4LogicalVolume *logic_anodeHolder = new G4LogicalVolume(solidSub_anodeHolder, peek, "AnodeHolder");
+
+  G4RotationMatrix* Rot45   = new G4RotationMatrix(); Rot45   -> rotateZ(  45*deg);
+  G4RotationMatrix* Rot_45  = new G4RotationMatrix(); Rot_45  -> rotateZ( -45*deg);
+  G4RotationMatrix* Rot135  = new G4RotationMatrix(); Rot135  -> rotateZ( 135*deg);
+  G4RotationMatrix* Rot_135 = new G4RotationMatrix(); Rot_135 -> rotateZ(-135*deg);
 
   G4double anodeHolder_z = 29.495*mm + anodeHolder_length_/2;
   n4::place(logic_anodeHolder).in(vessel).rotate(*Rot45).at({0., 0., -anodeHolder_z}).copy_no(0).check_overlaps().now();
