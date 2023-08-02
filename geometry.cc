@@ -71,17 +71,17 @@ G4PVPlacement* geometry() {
   // G4double el_transv_diff_    = 1. * mm/sqrt(cm);
   // G4double el_long_diff_      = .3 * mm/sqrt(cm);
 
-  auto Cu = n4::material("G4_Cu");
+  auto Cu     = n4::material("G4_Cu");
   auto vacuum = n4::material("G4_Galactic");
-  auto steel = n4::material("G4_STAINLESS-STEEL");
+  auto steel  = n4::material("G4_STAINLESS-STEEL");
 
-  auto gas_ = GAr_with_properties( pressure_, temperature_, sc_yield_, elifetime_);
+  auto gas_    = GAr_with_properties( pressure_, temperature_, sc_yield_, elifetime_);
   auto mesh_mat = FakeDielectric_with_properties(gas_, "mesh_mat",
                                                  pressure_, temperature_, mesh_transparency_, mesh_thickn_,
                                                  sc_yield_, elifetime_, photoe_prob_);
-  auto peek = peek_with_properties();
+  auto peek   = peek_with_properties();
   auto quartz = quartz_with_properties();
-  auto tpb = TPB_with_properties();
+  auto tpb    = TPB_with_properties();
 
   //Cylinder, acting as the vessel
   auto world = n4::volume<G4Box>("world", vacuum, world_size/2, world_size/2, world_size/2);
