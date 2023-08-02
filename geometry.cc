@@ -158,12 +158,9 @@ G4PVPlacement* geometry() {
   }
 
   //Cathode
-  n4::tubs("cathode").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(vessel).at(0,0,cathode_z).check_overlaps().now();
-
-  n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
-     .place(steel).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
-
-  n4::tubs("gas_drift").r(drift_r).z(drift_length_).place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
+  n4::tubs("cathode"       ).                   r(mesh_rad_       ).z(mesh_thickn_       ).place(mesh_mat).in(vessel).at(0,0,    cathode_z).check_overlaps().now();
+  n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_).place(steel   ).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
+  n4::tubs("gas_drift"     ).                   r(drift_r         ).z(drift_length_      ).place(gas_    ).in(vessel).at(0,0,      drift_z).check_overlaps().now();
 
   // EL gap
   gas_el = n4::tubs("gas_el").r(anodeBracket_rad_).z(el_length_).volume(gas_);
