@@ -3,6 +3,7 @@
 #include "nain4.hh"
 #include "g4-mandatory.hh"
 #include "geometry.hh"
+#include "n4-volumes.hh"
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
@@ -83,25 +84,24 @@ G4PVPlacement* geometry() {
   auto quartz = quartz_with_properties();
   auto tpb    = TPB_with_properties();
 
-  //Cylinder, acting as the vessel
-  auto world = n4::volume<G4Box>("world", vacuum, world_size/2, world_size/2, world_size/2);
+  auto world = n4::box("world").cube(world_size).volume(vacuum);
 
   //Cylinder, acting as the vessel
-  auto vessel_steel = n4::volume<G4Tubs>("vessel_steel", steel, 0., vessel_out_rad_, vessel_out_length_/2 , 0., 360.*deg);
-  n4::place(vessel_steel).in(world).at({0, 0, 0}).check_overlaps().now();
+  auto vessel_steel = n4::tubs("vessel_steel").r(vessel_out_rad_).z(vessel_out_length_).volume(steel);
+  n4::place(vessel_steel).in(world).check_overlaps().now();
 
   //Build inside detector
   //BuildTPC(gas_, mesh_mat, steel, peek, vacuum, quartz, tpb, vessel_steel);
 
-
-  auto vessel = n4::volume<G4Tubs>("GasVessel", gas_, 0., vessel_rad_, vessel_length_/2 , 0., 360.*deg);
+  auto vessel = n4::tubs("GasVessel").r(vessel_rad_).z(vessel_length_).volume(gas_);
   n4::place(vessel).in(vessel_steel).at({0, 0, 0}).check_overlaps().now();
-
 
   G4double cathode_z;
   G4LogicalVolume * gas_el;
   G4double drift_length_  ;
   G4double el_length_    ;
+
+  G4double drift_z;
 
   if (model_new_ == 0) {
 
@@ -111,79 +111,64 @@ G4PVPlacement* geometry() {
     G4double ring_rad_out_=140./2*mm;
     G4double ring_thickn_=10.*mm;
 
-    // Cathode
-    auto cathode= n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
-    //G4double cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
     cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
-    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check_overlaps().now();
+    //auto cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
 
     // Cathode Bracket
-    auto cathBracket = n4::volume<G4Tubs>("CathodeBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
-    //G4double cathBracket_z = 8.005*mm - meshBracket_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;
-    G4double cathBracket_z = cathode_z;
-    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check_overlaps().now();
+    auto cathBracket_z = cathode_z;
+    //auto cathBracket_z = 8.005*mm - meshBracket_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;
+    n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
+      .place(steel).in(vessel).at(0, 0, cathBracket_z).check_overlaps().now();
 
     //Cu rings
-    auto ring= n4::volume<G4Tubs>("ring", Cu, ring_rad_int_, ring_rad_out_, (ring_thickn_)/2, 0., 360.*deg);
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_/2}).copy_no(0).check_overlaps().now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - ring_thickn_ - d - ring_thickn_/2}).copy_no(1).check_overlaps().now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 2*ring_thickn_ - 2*d - ring_thickn_/2}).copy_no(2).check_overlaps().now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 3*ring_thickn_ - 3*d - ring_thickn_/2}).copy_no(3).check_overlaps().now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 4*ring_thickn_ - 4*d - ring_thickn_/2}).copy_no(4).check_overlaps().now();
-    n4::place(ring).in(vessel).at({0, 0, cathode_z - meshBracket_thickn_/2- D - 5*ring_thickn_ - 5*d - ring_thickn_/2}).copy_no(5).check_overlaps().now();
+    auto ring = n4::tubs("ring").r_inner(ring_rad_int_).r(ring_rad_out_).z(ring_thickn_).place(Cu).in(vessel).check_overlaps();
+    auto first_ring_z = cathode_z - meshBracket_thickn_/2 - D - ring_thickn_/2;
+    for (auto n : {0,1,2,3,4,5}) {
+      ring.clone().at(0, 0, first_ring_z - n * (ring_thickn_ + d)).copy_no(n).now();
+    }
 
     // Source box
-    G4double source_box_width = 100.*mm;
-    G4double source_box_lenght_ = 50.*mm;
-    auto source_box = n4::volume<G4Box>("source_box", steel, source_box_width/2, source_box_width/2, source_box_lenght_/2);
-    G4double source_box_z = cathode_z + 81.64*mm + source_box_lenght_/2;
-    //G4double source_box_z = cathode_z ;
-    n4::place(source_box).in(vessel).at({0., 0., source_box_z}).check_overlaps().now();
+    auto source_box_width  = 100*mm;
+    auto source_box_length =  50*mm;
+    auto source_box_z = cathode_z + 81.64*mm + source_box_length/2;
+    //auto source_box_z = cathode_z ;
+    n4::box("source_box").xy(source_box_width).z(source_box_length).place(steel).in(vessel).at(0,0,source_box_z).check_overlaps().now();
 
     //Gas
-    drift_length_  = 96.*mm - meshBracket_thickn_ ;
-    el_length_     = 15.*mm - anodeBracket_thickn_/2;
+    drift_length_ = 96*mm - meshBracket_thickn_ ;
+    el_length_    = 15*mm - anodeBracket_thickn_/2;
 
     // Drift
-    auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., meshBracket_rad_, (drift_length_)/2, 0., 360.*deg);
-    G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check_overlaps().now();
-
-    // EL gap
-    gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
-    G4double el_z = drift_z - drift_length_/2 - el_length_/2;
-    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
-    //el_gen_  = new CylinderPointSampler2020(el_phys_);
+    drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    n4::tubs("gas_drift").r(meshBracket_rad_).z(drift_length_).place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
 
   }  else {
 
-    //Cathode
-    auto cathode = n4::volume<G4Tubs>("cathode", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
     cathode_z = 4.505*mm + mesh_thickn_/2;  //cathode center from vessel center
-    n4::place(cathode).in(vessel).at({0, 0, cathode_z}).check_overlaps().now();
 
     //Cathode Bracket
-    auto cathBracket = n4::volume<G4Tubs>("CathodeBracket", steel, mesh_rad_, meshBracket_rad_, (meshBracket_thickn_)/2, 0., 360.*deg);
     G4double cathBracket_z = 8.005*mm - meshBracket_thickn_/2;
-    n4::place(cathBracket).in(vessel).at({0, 0, cathBracket_z}).check_overlaps().now();
+    n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_)
+      .place(steel).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
 
     //Gas
-    drift_length_  = 19.825*mm - mesh_thickn_ ;
+    drift_length_  = 19.825*mm - mesh_thickn_;
     el_length_     = 10.775*mm + mesh_thickn_;
 
     // Drift
-    auto gas_drift = n4::volume<G4Tubs>("gas_drift", gas_, 0., anodeBracket_rad_, (drift_length_)/2, 0., 360.*deg);
-    G4double drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    n4::place(gas_drift).in(vessel).at({0, 0, drift_z}).check_overlaps().now();
-
-
-    // EL gap
-    //auto gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0, mesh_rad_, (el_length_)/2, 0., 360.*deg);
-    gas_el = n4::volume<G4Tubs>("gas_el", gas_, 0., anodeBracket_rad_, (el_length_)/2, 0., 360.*deg);
-    G4double el_z = drift_z - drift_length_/2 - el_length_/2;
-    n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
-    //el_gen_  = new CylinderPointSampler2020(el_phys_);
+    drift_z = cathode_z - mesh_thickn_/2 - drift_length_/2;
+    n4::tubs("gas_drift").r(anodeBracket_rad_).z(drift_length_)
+      .place(gas_).in(vessel).at(0,0,drift_z).check_overlaps().now();
   }
+
+  //Cathode
+  n4::tubs("cathode").r(mesh_rad_).z(mesh_thickn_).place(mesh_mat).in(vessel).at(0,0,cathode_z).check_overlaps().now();
+
+  // EL gap
+  gas_el = n4::tubs("gas_el").r(anodeBracket_rad_).z(el_length_).volume(gas_);
+  G4double el_z = drift_z - drift_length_/2 - el_length_/2;
+  n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
+  //el_gen_  = new CylinderPointSampler2020(el_phys_);
 
   // Gate
   auto gate = n4::volume<G4Tubs>("gate", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
