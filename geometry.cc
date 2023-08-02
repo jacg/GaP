@@ -195,7 +195,6 @@ G4PVPlacement* geometry() {
   G4double anodeHolder_hole_thickn_ = 10    *mm;
   G4double anodeHolder_hole_angle_  = 7.965 *deg;
 
-
   auto anode_holder = n4::tubs("AnodeHolder"    ).r_inner(anodeHolder_rad_     ).r_delta(anodeHolder_thickn_     ).z(anodeHolder_length_     ).phi_start(-anodeHolder_angle_     /2).phi_delta(anodeHolder_angle_     )
     .subtract(        n4::tubs("AnodeHolderHole").r_inner(anodeHolder_hole_rad_).r_delta(anodeHolder_hole_thickn_).z(anodeHolder_hole_length_).phi_start(-anodeHolder_hole_angle_/2).phi_delta(anodeHolder_hole_angle_))
     .at(0, 0, anodeHolder_length_/2 - anodeHolder_hole_length_/2)
@@ -372,21 +371,23 @@ G4PVPlacement* geometry() {
     G4double meshHolder_holeUp_length_ = 6      *mm;
     G4double meshHolder_hole_thickn_   = 11.667 *mm;
 
-    G4Box *solid_meshHolder_block = new G4Box("MeshHolder", meshHolder_width_/2, meshHolder_thickn_/2 , meshHolder_length_/2);
-    G4Box *solid_meshHolder_hole = new G4Box("MeshHolderHoleDown", meshHolder_width_, meshHolder_hole_thickn_ , meshHolder_hole_length_/2);
-    G4Box *solid_meshHolder_holeUp = new G4Box("MeshHolderHoleUp", meshHolder_width_, meshHolder_hole_thickn_ , meshHolder_holeUp_length_/2);
-    G4VSolid        *solidSub_meshHolder0 = new G4SubtractionSolid("MeshHolderHole_SubDown", solid_meshHolder_block, solid_meshHolder_hole, 0, G4ThreeVector(0., meshHolder_thickn_/2, meshHolder_length_/2-meshHolder_hole_length_/2-5*mm) );
-    G4VSolid        *solidSub_meshHolder = new G4SubtractionSolid("MeshHolderHole_SubUp", solidSub_meshHolder0, solid_meshHolder_holeUp, 0, G4ThreeVector(0., meshHolder_thickn_/2, -(meshHolder_length_/2-meshHolder_holeUp_length_/2-5*mm)) );
-    G4LogicalVolume *logic_meshHolder = new G4LogicalVolume(solidSub_meshHolder, peek, "MeshHolder");
+    auto dz_down =   meshHolder_length_/2 - meshHolder_hole_length_  /2 - 5*mm;
+    auto dz_up   = -(meshHolder_length_/2 - meshHolder_holeUp_length_/2 - 5*mm);
+
+    auto logic_meshHolder =
+    /*        */n4::box("MeshHolder"        ).xyz(meshHolder_width_  , meshHolder_thickn_       , meshHolder_length_       )
+      .subtract(n4::box("MEshHolderHoleDown").xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_hole_length_  )).at(0, meshHolder_thickn_/2, dz_down)
+      .subtract(n4::box("MEshHolderHoleUp"  ).xyz(meshHolder_width_*2, meshHolder_hole_thickn_*2, meshHolder_holeUp_length_)).at(0, meshHolder_thickn_/2, dz_up  )
+      .name("MeshHolder")
+      .volume(peek);
 
     G4double meshHolder_x = 5*mm + meshBracket_rad_ * cos(45*deg);
     G4double meshHolder_y = 5*mm + meshBracket_rad_ * sin(45*deg);
     G4double meshHolder_z = -13.005*mm + meshHolder_length_/2 ;
 
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_45).at({-meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(0).check_overlaps().now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot_135).at({-meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(1).check_overlaps().now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot45).at({meshHolder_x, -meshHolder_y, -meshHolder_z}).copy_no(2).check_overlaps().now();
-    n4::place(logic_meshHolder).in(vessel).rotate(*Rot135).at({meshHolder_x, meshHolder_y, -meshHolder_z}).copy_no(3).check_overlaps().now();
+    for (auto [i, angle] : enumerate({45, 135, -45, -135})) {
+      n4::place(logic_meshHolder).in(vessel).rotate_z(angle*deg).at(-meshHolder_x, -meshHolder_y, -meshHolder_z).copy_no(i).check_overlaps().now();
+    }
 
     //Steel Bar joining Mesh holder and PMT clad
     G4double meshHolderBar_rad_     = 9./2   *mm;
