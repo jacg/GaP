@@ -157,16 +157,15 @@ G4PVPlacement* geometry() {
     drift_r = anodeBracket_rad_;
   }
 
-  //Cathode
+  // Common volumes
   n4::tubs("cathode"       ).                   r(mesh_rad_       ).z(mesh_thickn_       ).place(mesh_mat).in(vessel).at(0,0,    cathode_z).check_overlaps().now();
   n4::tubs("CathodeBracket").r_inner(mesh_rad_).r(meshBracket_rad_).z(meshBracket_thickn_).place(steel   ).in(vessel).at(0,0,cathBracket_z).check_overlaps().now();
   n4::tubs("gas_drift"     ).                   r(drift_r         ).z(drift_length_      ).place(gas_    ).in(vessel).at(0,0,      drift_z).check_overlaps().now();
 
   // EL gap
-  gas_el = n4::tubs("gas_el").r(anodeBracket_rad_).z(el_length_).volume(gas_);
   G4double el_z = drift_z - drift_length_/2 - el_length_/2;
+  gas_el = n4::tubs("gas_el").r(anodeBracket_rad_).z(el_length_).volume(gas_);
   n4::place(gas_el).in(vessel).at({0, 0, el_z}).check_overlaps().now();
-  //el_gen_  = new CylinderPointSampler2020(el_phys_);
 
   // Gate
   auto gate = n4::volume<G4Tubs>("gate", mesh_mat, 0., mesh_rad_, (mesh_thickn_)/2, 0., 360.*deg);
