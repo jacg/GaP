@@ -106,11 +106,11 @@ G4PVPlacement* geometry() {
 
   if (model_new_ == 0) {
 
-    G4double d=3.*mm;
-    G4double D=5.*mm;
-    G4double ring_rad_int_=130./2*mm;
-    G4double ring_rad_out_=140./2*mm;
-    G4double ring_thickn_=10.*mm;
+    G4double d             =   3     * mm;
+    G4double D             =   5     * mm;
+    G4double ring_rad_int_ = 130 /2. * mm;
+    G4double ring_rad_out_ = 140 /2. * mm;
+    G4double ring_thickn_  =  10     * mm;
 
     cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
     //auto cathode_z = 4.505*mm + mesh_thickn_/2 + 2*D + 5*d + 6*ring_thickn_;  //cathode center from vessel center
