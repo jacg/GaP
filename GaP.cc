@@ -616,10 +616,8 @@ int main(int argc, char *argv[]) {
 
     //    run_manager -> SetUserInitialization(new n4::geometry{geometry});
 
-    auto air = n4::material("G4_AIR");
-    auto radius = 180./2  * mm;
-    auto vessel = n4::box("world").cube(3*radius).volume(air);
-    run_manager -> SetUserInitialization(new n4::geometry{[&] { place_mesh_holder_in(vessel); return n4::place(vessel).now(); }});
+    auto world = get_world();
+    run_manager -> SetUserInitialization(new n4::geometry{[&] { place_mesh_holder_in(world); return n4::place(world).now(); }});
 
     run_manager -> Initialize();
 

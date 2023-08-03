@@ -104,6 +104,11 @@ void ensure_initialized() {
   world = n4::box("world").cube(world_size).volume(vacuum);
 }
 
+G4LogicalVolume* get_world() {
+  ensure_initialized();
+  return world;
+}
+
 
 void place_mesh_holder_in(G4LogicalVolume* vessel) {
   // Ensure this sub-geometry can be built (probably for visualization) without
