@@ -43,23 +43,6 @@
 #include <vector>
 
 
-void generate_gammas(G4Event* event, G4ThreeVector position, G4double time, G4double energy) {
-    auto gamma = nain4::find_particle("gamma");
-    auto p = energy*keV * G4RandomDirection();
-    auto vertex = new G4PrimaryVertex{position, time};
-    vertex -> SetPrimary(new G4PrimaryParticle(gamma,  p.x(),  p.y(),  p.z()));
-    event -> AddPrimaryVertex(vertex);
-}
-
-void generate_electrons(G4Event* event, G4ThreeVector /*position*/, G4double /*time*/) {
-    static G4ParticleGun* particleGun = new G4ParticleGun(1);
-    auto electron = nain4::find_particle("e-");
-    particleGun -> SetParticleDefinition(electron);
-    particleGun -> SetParticleEnergy(511*keV);
-    particleGun -> SetParticleMomentumDirection(G4RandomDirection());
-    particleGun -> GeneratePrimaryVertex(event);
-}
-
 namespace find_me_a_good_name {
     G4double cathode_z           = (90.1125 - 15.745) *mm;
     G4double mesh_thickn_        =   0.075            *mm;
@@ -67,28 +50,6 @@ namespace find_me_a_good_name {
     G4double drift_length_       =  96                *mm - meshBracket_thickn_ ;
     G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
     G4double meshBracket_rad_    = 180./2  *mm;
-}
-
-void generate_inside(G4Event* event, G4double /*time*/){
-    static G4ParticleGun* particleGun = new G4ParticleGun(2);
-    auto electron = nain4::find_particle("gamma");
-    particleGun -> SetParticleDefinition(electron);
-    particleGun -> SetParticleEnergy(511*keV);
-    particleGun -> SetParticleMomentumDirection(G4RandomDirection());
-
-    using namespace find_me_a_good_name;
-
-    G4double r     = G4RandFlat::shoot( 0., meshBracket_rad_);
-    G4double angle = G4RandFlat::shoot( 0., 2*M_PI);
-    G4double z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-
-    G4double pos_x = r * cos(angle);
-    G4double pos_y = r * sin(angle);
-    G4double pos_z = z;
-
-    particleGun -> SetParticlePosition({pos_x, pos_y, pos_z});
-    particleGun -> GeneratePrimaryVertex(event);
-
 }
 
 void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* particle, G4double energy) {
