@@ -299,7 +299,7 @@ void place_pmt_holder_in(G4LogicalVolume* vessel) {
 field_cage_parameters model_something_old() {
   field_cage_parameters fcp;
 
-  fcp.cathode_z = 90.1125*mm - 15.745*mm;  //cathode center from vessel center
+  fcp.cathode_z = (90.1125 - 15.745)*mm;  //cathode center from vessel center
   //auto cathode_z = 4.505*mm + mesh_thickn/2 + 2*D + 5*d + 6*ring_thickn;  //cathode center from vessel center
 
   // Cathode Bracket
