@@ -183,12 +183,22 @@ G4MaterialPropertiesTable* TPB_properties() {
   // for wavelengths higher than 380 nm where the WLS emission spectrum starts.
 
   // TODO remember optPhot{Min,Max}E_ !!!!!!!!!!!!!!!!!!!!!!!!!
-  auto WLS_abs_energy = n4::factor_over(c4::hc/nm, {380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150});
+  // auto WLS_abs_energy = n4::factor_over(c4::hc/nm, {380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150});
+
+  // OPTION 1
+  auto max_wl = optPhotMinE_ * nm / c4::hc;
+  auto min_wl = optPhotMaxE_ * nm / c4::hc;
+  auto WLS_abs_energy_1 = n4::factor_over(c4::hc/nm, {max_wl, 380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150, min_wl});
+
+  // OPTION 2
+  auto WLS_abs_energy_2 = n4::factor_over(c4::hc/nm,        { 380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150}        );
+  WLS_abs_energy_2.insert   (WLS_abs_energy_2.begin(), optPhotMinE_);
+  WLS_abs_energy_2.push_back(                          optPhotMaxE_);
 
 
 
-
-
+  constexpr bool first = true;
+  WLS_abs_energy = first ? WLS_abs_energy_1 : WLS_abs_energy_2;
 
 
 
