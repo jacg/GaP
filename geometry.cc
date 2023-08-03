@@ -398,12 +398,6 @@ void place_anode_el_gate_in (G4LogicalVolume* vessel, field_cage_parameters cons
     .at_z(anodeHolder_length/2 - anodeHolder_hole_length/2)
     .volume(peek);
 
-
-  G4RotationMatrix* Rot45   = new G4RotationMatrix(); Rot45   -> rotateZ(  45*deg);
-  G4RotationMatrix* Rot_45  = new G4RotationMatrix(); Rot_45  -> rotateZ( -45*deg);
-  G4RotationMatrix* Rot135  = new G4RotationMatrix(); Rot135  -> rotateZ( 135*deg);
-  G4RotationMatrix* Rot_135 = new G4RotationMatrix(); Rot_135 -> rotateZ(-135*deg);
-
   auto anodeHolder_z = 29.495*mm + anodeHolder_length/2;
   for (auto [i, angle] : enumerate({45, 135, -45, -135}) ) {
     n4::place(anode_holder).in(vessel).rotate_z(angle*deg).at_z(-anodeHolder_z).copy_no(i).check_overlaps().now();
@@ -463,10 +457,10 @@ G4PVPlacement* geometry() {
     //auto A_xy = plate_pmt_rad+plate_pmt_thickn - A_length/2;
     //auto A_z = plate0_pmt_z + plate_pmt_length/2 - A_length/2;
 
-    //n4::place(logic_A).in(vessel).rotate(*Rot_45).at(-A_xy, -A_xy, -A_z).copy_no(0).check_overlaps().now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot_135).at(-A_xy, A_xy, -A_z).copy_no(1).check_overlaps().now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot45).at(A_xy, -A_xy, -A_z).copy_no(2).check_overlaps().now();
-    //n4::place(logic_A).in(vessel).rotate(*Rot135).at(A_xy, A_xy, -A_z).copy_no(3).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate_z(- 45*deg).at(-A_xy, -A_xy, -A_z).copy_no(0).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate_z(-135*deg).at(-A_xy, A_xy, -A_z).copy_no(1).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate_z(  45*deg).at(A_xy, -A_xy, -A_z).copy_no(2).check_overlaps().now();
+    //n4::place(logic_A).in(vessel).rotate_z( 135*deg).at(A_xy, A_xy, -A_z).copy_no(3).check_overlaps().now();
   } else {
     place_mesh_holder_in(vessel);
   }
