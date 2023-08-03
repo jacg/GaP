@@ -1,8 +1,10 @@
-#include "nain4.hh"
-#include "g4-mandatory.hh"
 #include "GasProperties.hh"
 #include "PropertiesTables.hh"
+
+#include "nain4.hh"
+#include "g4-mandatory.hh"
 #include "n4-constants.hh"
+#include "n4-utils.hh"
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
@@ -80,20 +82,13 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
 }
 
 ////////////////////////////////////////////////////////////////////////
-
 G4MaterialPropertiesTable* quartz_properties(){
 
-// REFRACTIVE INDEX
+  // REFRACTIVE INDEX
   // The range is chosen to be up to ~10.7 eV because Sellmeier's equation
   // for fused silica is valid only in that range
-
-  const G4int ri_entries = 200;
-  G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
-
-  vecd ri_energy;
-  for (int i=0; i<ri_entries; i++) {
-    ri_energy.push_back(optPhotMinE_ + i * eWidth);
-  }
+  const size_t ri_entries = 200;
+  auto ri_energy = n4::linspace(optPhotMinE_, optPhotMaxE_, ri_entries);
 
   // The following values for the refractive index have been calculated
   // using Sellmeier's equation:
@@ -104,52 +99,51 @@ G4MaterialPropertiesTable* quartz_properties(){
   //    B_1 = 4.73E-1, B_2 = 6.31E-1, B_3 = 9.06E-1
   //    C_1 = 1.30E-2, C_2 = 4.13E-3, C_3 = 9.88E+1.
 
-  G4double B_1 = 4.73e-1;
-  G4double B_2 = 6.31e-1;
-  G4double B_3 = 9.06e-1;
-  G4double C_1 = 1.30e-2;
-  G4double C_2 = 4.13e-3;
-  G4double C_3 = 9.88e+1;
+  auto ref_index_sellmeier = [] (auto e) {
+    auto B_1 = 4.73e-1;
+    auto B_2 = 6.31e-1;
+    auto B_3 = 9.06e-1;
+    auto C_1 = 1.30e-2;
+    auto C_2 = 4.13e-3;
+    auto C_3 = 9.88e+1;
 
-  vecd rIndex;
-  for (int i=0; i<ri_entries; i++) {
-    G4double lambda = h_Planck*c_light/ri_energy[i]*1000; // in micron
-    G4double n2 = 1 + B_1*pow(lambda,2)/(pow(lambda,2)-C_1)
-      + B_2*pow(lambda,2)/(pow(lambda,2)-C_2)
-      + B_3*pow(lambda,2)/(pow(lambda,2)-C_3);
-    rIndex.push_back(sqrt(n2));
-    // G4cout << "* FusedSilica rIndex:  " << std::setw(5) << ri_energy[i]/eV
-    //       << " eV -> " << rIndex[i] << G4endl;
-  }
+    auto lambda  = c4::hc / e / nm * um; // in micron
+    auto lambda2 = std::pow(lambda, 2);
+    auto n2 = 1 + lambda2 * ( B_1 / (lambda2 - C_1)
+                            + B_2 / (lambda2 - C_2)
+                            + B_3 / (lambda2 - C_3));
+    return std::sqrt(n2);
+  };
+
+  auto rIndex = n4::map<G4double>(ref_index_sellmeier, ri_energy);
+
+  // for (int i=0; i<ri_entries; i++) {
+  //   G4cout << "* FusedSilica rIndex:  " << std::setw(5) << ri_energy[i]/eV
+  //         << " eV -> " << rIndex[i] << G4endl;
+  // }
 
 
   // ABSORPTION LENGTH
-  vecd abs_energy = {
-    optPhotMinE_,  6.46499 * eV,
-    6.54000 * eV,  6.59490 * eV,  6.64000 * eV,  6.72714 * eV,
-    6.73828 * eV,  6.75000 * eV,  6.82104 * eV,  6.86000 * eV,
-    6.88000 * eV,  6.89000 * eV,  7.00000 * eV,  7.01000 * eV,
-    7.01797 * eV,  7.05000 * eV,  7.08000 * eV,  7.08482 * eV,
-    7.30000 * eV,  7.36000 * eV,  7.40000 * eV,  7.48000 * eV,
-    7.52000 * eV,  7.58000 * eV,  7.67440 * eV,  7.76000 * eV,
-    7.89000 * eV,  7.93000 * eV,  8.00000 * eV,
-    optPhotMaxE_
-  };
+  auto abs_energy = n4::scale_by(eV, {
+    optPhotMinE_ / eV,
+              6.46499, 6.54000, 6.59490, 6.64000, 6.72714, 6.73828, 6.75000,
+              6.82104, 6.86000, 6.88000, 6.89000, 7.00000, 7.01000, 7.01797,
+              7.05000, 7.08000, 7.08482, 7.30000, 7.36000, 7.40000, 7.48000,
+              7.52000, 7.58000, 7.67440, 7.76000, 7.89000, 7.93000, 8.00000,
+    optPhotMaxE_ / eV
+    });
 
-  vecd absLength = {
-    noAbsLength_, noAbsLength_,
-    200.0 * cm,   200.0 * cm,  90.0 * cm,  45.0 * cm,
-    45.0 * cm,    30.0 * cm,  24.0 * cm,  21.0 * cm,
-    20.0 * cm,    19.0 * cm,  16.0 * cm,  14.0 * cm,
-    13.0 * cm,     8.5 * cm,   8.0 * cm,   6.0 * cm,
-    1.5 * cm,     1.2 * cm,   1.0 * cm,   .65 * cm,
-     .4 * cm,     .37 * cm,   .32 * cm,   .28 * cm,
-     .22 * cm,    .215 * cm,  .00005*cm,
-     .00005* cm
-  };
+  auto absLength = n4::scale_by(cm, {
+    noAbsLength_ / cm,
+    noAbsLength_ / cm,  200.0 ,  200.0 ,   90.0 ,   45.0 ,  45.0  ,   30.0 ,
+                 24.0,   21.0 ,   20.0 ,   19.0 ,   16.0 ,  14.0  ,   13.0 ,
+                  8.5,    8.0 ,    6.0 ,    1.5 ,    1.2 ,   1.0  ,     .65,
+                   .4,     .37,     .32,     .28,     .22,    .215,   5e-5 ,
+    5e-5
+    });
 
-   return n4::material_properties()
-    .add("RINDEX", ri_energy, rIndex)
+  return n4::material_properties()
+    .add("RINDEX"   ,  ri_energy, rIndex)
     .add("ABSLENGTH", abs_energy, absLength)
     .done();
 
