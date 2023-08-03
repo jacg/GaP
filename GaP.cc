@@ -43,32 +43,12 @@
 #include <vector>
 
 
-namespace find_me_a_good_name {
-    G4double cathode_z           = (90.1125 - 15.745) *mm;
-    G4double mesh_thickn_        =   0.075            *mm;
-    G4double meshBracket_thickn_ =   6                *mm;
-    G4double drift_length_       =  96                *mm - meshBracket_thickn_ ;
-    G4double drift_z             = cathode_z - mesh_thickn_/2 - drift_length_/2;
-    G4double meshBracket_rad_    = 180./2  *mm;
-}
-
 void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* particle, G4double energy) {
     auto primary = new G4PrimaryParticle(particle);
     primary -> SetKineticEnergy(energy);
     primary -> SetMomentumDirection(G4RandomDirection());
     // primary -> SetCharge(...)  if needed eventually
     vertex -> SetPrimary(primary);
-};
-
-G4ThreeVector position_active_volume() {
-    using namespace find_me_a_good_name;
-    auto r     = G4RandFlat::shoot( 0., meshBracket_rad_);
-    auto angle = G4RandFlat::shoot( 0., 2*M_PI); // Flat distribution in the radius doesn't make sense
-    auto z     = G4RandFlat::shoot(-drift_length_/2 + drift_z, drift_length_/2 + drift_z);
-    auto pos_x = r * cos(angle);
-    auto pos_y = r * sin(angle);
-    auto pos_z = z;
-    return G4ThreeVector{pos_x, pos_y, pos_z};
 };
 
 std::unique_ptr<G4PrimaryVertex> generate_vertex(G4ThreeVector pos) {
@@ -97,53 +77,6 @@ void generate_particles_in_event(
 void banner(G4String msg) {
     G4cout << "********************************** " << msg << " **********************************" << G4endl;
 }
-
-void generate_Kr83m2_decay(G4Event* event, G4double /*time*/){
-
-    auto electron       = n4::find_particle("e-");
-    auto optical_photon = n4::find_particle("opticalphoton");
-    auto gamma          = n4::find_particle("gamma");
-
-    auto p_t1_ic_1au = 0.76;
-    auto p_t1_ic_2au = 0.09;
-    auto p_t1_ic_1au_xray = 1 - p_t1_ic_1au - p_t1_ic_2au;
-    static auto distribution_1 = n4::random::biased_choice{{p_t1_ic_1au, p_t1_ic_2au, p_t1_ic_1au_xray}};
-
-    // falta tener en cuenta el tiempo medio de las partículas
-    auto p_t2_ic_1au = 0.95;
-    auto p_t2_xray = 1 - p_t2_ic_1au;
-    static auto distribution_2 = n4::random::biased_choice{{p_t2_ic_1au, p_t2_xray}};
-
-    auto random_event_1 = distribution_1();
-    auto random_event_2 = distribution_2();
-
-    if (random_event_1 == 0) {
-        banner("DECAY 1 = 0.76");
-        generate_particles_in_event(event, position_active_volume, {{electron, 30 * keV},
-                                                                    {electron,  2 * keV}});
-    } else if (random_event_1 == 1) {
-        banner("DECAY 1 = 0.09");
-        generate_particles_in_event(event, position_active_volume, {{electron, 18 * keV},
-                                                                    {electron, 10 * keV},
-                                                                    {electron,  2 * keV},
-                                                                    {electron,  2 * keV}});
-    } else if (random_event_1 == 2) {
-        banner("DECAY 1 = 0.15");
-        generate_particles_in_event(event, position_active_volume, {{ electron      , 18 * keV},
-                                                                    { optical_photon, 12 * keV},   // This energy looks suspicious for an optical photon
-                                                                    { electron      ,  2 * keV}});
-    }
-
-    if (random_event_2 == 0) {
-        banner("DECAY 2 = 0.95");
-        generate_particles_in_event(event, position_active_volume, {{electron, 7.6 * keV},
-                                                                    {electron, 1.8 * keV}});
-    } else if (random_event_2 == 1) {
-        banner("DECAY 2 = 0.05");
-        generate_particles_in_event(event, position_active_volume, {{gamma, 9.4 * keV}});
-    }
-}
-
 
 void generate_Co57(G4Event* event, G4ThreeVector position, G4double /*time*/){
 
