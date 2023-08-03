@@ -36,60 +36,46 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
                          [[maybe_unused]] G4double temperature,
                                           G4int    sc_yield,
                                           G4double e_lifetime){
-    // REFRACTIVE INDEX
-    const G4int ri_entries = 200;
-    G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
 
-    vecd ri_energy;
-    for (int i=0; i<ri_entries; i++) {
-      ri_energy.push_back(optPhotMinE_ + i * eWidth);
-    }
+  // REFRACTIVE INDEX
+  const size_t ri_entries = 200;
+  auto ri_energy = n4::linspace(optPhotMinE_, optPhotMaxE_, ri_entries);
+  auto density   = GXeDensity(pressure);
+  auto rIndex    = n4::map<G4double>([=] (auto e) { return XenonRefractiveIndex(e, density); }
+                                    , ri_energy);
 
-    G4double density = GXeDensity(pressure);
-    vecd rIndex;
-    for (int i=0; i<ri_entries; i++) {
-      G4double ri = XenonRefractiveIndex(ri_energy[i], density);
-      rIndex.push_back(ri);
-      // G4cout << "* GXe rIndex:  " << std::setw(7)
-      //        << ri_energy[i]/eV << " eV -> " << rIndex[i] << G4endl;
-    }
-
-    // ABSORPTION LENGTH
-    vecd abs_energy = {optPhotMinE_, optPhotMaxE_};
-    vecd absLength  = {noAbsLength_, noAbsLength_};
-
-    // EMISSION SPECTRUM
-    // Sampling from ~150 nm to 200 nm <----> from 6.20625 eV to 8.20625 eV
-    const G4int sc_entries = 200;
-    vecd sc_energy;
-    for (int i=0; i<sc_entries; i++){
-      sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
-    }
-    vecd intensity;
-    for (G4int i=0; i<sc_entries; i++) {
-      G4double inten = GXeScintillation(sc_energy[i], pressure);
-      intensity.push_back(inten);
-    }
-    //for (int i=0; i<sc_entries; i++) {
-    //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
-    //         << " eV -> " << intensity[i] << G4endl;
-    //}
+  // for (size_t i=0; i<ri_entries; i++) {
+  //   G4cout << "* GXe rIndex:  " << std::setw(7)
+  //          << ri_energy[i]/eV << " eV -> " << rIndex[i] << G4endl;
+  // }
 
 
-    return n4::material_properties()
-        .add("RINDEX", ri_energy, rIndex)
-        .add("ABSLENGTH", abs_energy, absLength)
-        .add("SCINTILLATIONCOMPONENT1", sc_energy, intensity)
-        .add("SCINTILLATIONCOMPONENT2", sc_energy, intensity)
-        .NEW("ELSPECTRUM", sc_energy, intensity)
-        .add("SCINTILLATIONYIELD", sc_yield)
-        .add("RESOLUTIONSCALE", 1.0)
-        .add("SCINTILLATIONTIMECONSTANT1", 4.5 * ns)
-        .add("SCINTILLATIONTIMECONSTANT2", 100. * ns)
-        .add("SCINTILLATIONYIELD1", .1)
-        .add("SCINTILLATIONYIELD2", .9)
-        .NEW("ATTACHMENT", e_lifetime)
-        .done();
+  // EMISSION SPECTRUM
+  // Sampling from ~150 nm to 200 nm <----> from 6.20625 eV to 8.20625 eV
+  const size_t sc_entries = 200;
+  auto sc_energy = n4::linspace(6.20625 * eV, 8.20625 * eV, sc_entries);
+  auto intensity = n4::map<G4double>([=] (auto e) { return GXeScintillation(e, pressure); },
+                                     sc_energy);
+  //for (int i=0; i<sc_entries; i++) {
+  //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
+  //         << " eV -> " << intensity[i] << G4endl;
+  //}
+
+
+  return n4::material_properties()
+    .add("RINDEX"                    , ri_energy, rIndex)
+    .add("ABSLENGTH"                 , optPhotRangeE_, noAbsLength_)
+    .add("SCINTILLATIONCOMPONENT1"   , sc_energy, intensity) // Not sure if this makes sense
+    .add("SCINTILLATIONCOMPONENT2"   , sc_energy, intensity) // Not sure if this makes sense
+    .NEW("ELSPECTRUM"                , sc_energy, intensity)
+    .add("SCINTILLATIONYIELD"        , sc_yield)
+    .add("RESOLUTIONSCALE"           ,   1.0)
+    .add("SCINTILLATIONTIMECONSTANT1",   4.5 * ns)
+    .add("SCINTILLATIONTIMECONSTANT2", 100.  * ns)
+    .add("SCINTILLATIONYIELD1"       ,    .1)
+    .add("SCINTILLATIONYIELD2"       ,    .9)
+    .NEW("ATTACHMENT"                , e_lifetime)
+    .done();
 
 }
 
