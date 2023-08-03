@@ -219,22 +219,20 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
                                                      G4int    sc_yield,
                                                      G4double e_lifetime,
                                                      G4double photoe_p){
-
    // ABSORPTION LENGTH
-   G4double abs_length   = -thickness/log(transparency);
-   vecd abs_energy = {optPhotMinE_, optPhotMaxE_};
-   vecd absLength  = {abs_length, abs_length};
+   G4double abs_length = -thickness/log(transparency);
 
    // PHOTOELECTRIC REEMISSION
    // https://aip.scitation.org/doi/10.1063/1.1708797
    G4double stainless_wf = 4.3 * eV; // work function
 
    G4MaterialPropertiesTable* xenon_pt = GXe_properties(pressure, temperature, sc_yield, e_lifetime);
-   xenon_pt ->  AddProperty("ABSLENGTH", abs_energy, absLength);
-   xenon_pt ->  AddConstProperty("WORK_FUNCTION", stainless_wf, true);
-   xenon_pt ->  AddConstProperty ("OP_PHOTOELECTRIC_PROBABILITY", photoe_p, true);
-
-   return xenon_pt;
+   return n4::material_properties()
+     .add("ABSLENGTH"                   , optPhotRangeE_, abs_length)
+     .NEW("WORK_FUNCTION"               ,                 stainless_wf)
+     .NEW("OP_PHOTOELECTRIC_PROBABILITY",                 photoe_p)
+     //     .copy_from(xenon_pt, {"cosas"})
+     .done();
 
    //return n4::material_properties()
     //.add("ABSLENGTH", abs_energy, absLength)
