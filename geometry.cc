@@ -297,13 +297,11 @@ G4PVPlacement* geometry() {
   }
 
   /////////////////////////
-  //Quartz Window
-  G4double quartz_window_z = 35.495*mm + quartz_window_thickn/2 ;
+  //Quartz Window and Evaporated TPB
+  G4double quartz_window_z = 35.495*mm + quartz_window_thickn/2;
+  G4double tpb_coating_z = quartz_window_z - quartz_window_thickn/2 - tpb_coating_thickn/2;
   n4::tubs("QuartzWindow").r(quartz_window_rad).z(quartz_window_thickn).place(quartz).in(vessel).at(0, 0, -quartz_window_z).check_overlaps().now();
-
-  //Evaporated TPB
-  G4double tpb_coating_z = quartz_window_z - quartz_window_thickn/2 - tpb_coating_thickn/2 ;
-  n4::tubs("CoatingTPB").r(quartz_window_rad).z(tpb_coating_thickn).place(tpb).in(vessel).at(0, 0, -tpb_coating_z).check_overlaps().now();
+  n4::tubs("CoatingTPB"  ).r(quartz_window_rad).z(  tpb_coating_thickn).place(tpb   ).in(vessel).at(0, 0,   -tpb_coating_z).check_overlaps().now();
 
   // Peek Quartz Window Holder
 
@@ -359,8 +357,8 @@ G4PVPlacement* geometry() {
 
   //Build PMT
   //G4double pmt_length = pmt_.Length();
-  G4double pmt_length = 43.0 * mm;
-  G4double pmt_z  = 42.495*mm + pmt_length/2;
+  G4double pmt_length = 43.0  *mm;
+  G4double pmt_z      = 42.495*mm + pmt_length/2;
 
   G4Tubs* solid_pmt = n4::tubs("SolidPMT").r(pmt_rad).z(pmt_length).solid(); // Hamamatsu pmt length: 43*mm | STEP pmt gap length: 57.5*mm
 
