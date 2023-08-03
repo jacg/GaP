@@ -614,14 +614,15 @@ int main(int argc, char *argv[]) {
                                                 //-> set((new n4::run_action) -> end(print_energy)));
                                                 //-> set((new n4::run_action) -> end(reset_eventCounter)));
 
-       // run_manager -> SetUserInitialization(new n4::geometry{geometry});
+       run_manager -> SetUserInitialization(new n4::geometry{geometry});
 
-    auto world = get_world();
-    //auto& place_something_in = place_mesh_holder_in;
-    //auto& place_something_in = place_quartz_window_holder_in;
-    auto& place_something_in = place_pmt_holder_in;
-
-    run_manager -> SetUserInitialization(new n4::geometry{[&] { place_something_in(world); return n4::place(world).now(); }});
+    // auto world = get_world();
+    // //auto& place_something_in = place_mesh_holder_in;
+    // //auto& place_something_in = place_quartz_window_holder_in;
+    // //auto& place_something_in = place_pmt_holder_in;
+    // auto place_something_in = [](auto world){ place_rings_in(world, model_new()); };
+    // //auto place_something_in = [](auto world){ place_anode_el_gate_in(world, model_xxx_0()); };
+    // run_manager -> SetUserInitialization(new n4::geometry{[&] { place_something_in(world); return n4::place(world).now(); }});
 
     run_manager -> Initialize();
 
