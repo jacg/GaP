@@ -2,6 +2,7 @@
 #include "g4-mandatory.hh"
 #include "GasProperties.hh"
 #include "PropertiesTables.hh"
+#include "n4-constants.hh"
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
@@ -172,7 +173,7 @@ G4MaterialPropertiesTable* quartz_properties(){
 ////////////////////////////////////////////////////////////////////////
 
 
-G4MaterialPropertiesTable* TPB_properties(){
+G4MaterialPropertiesTable* TPB_properties() {
 
   // REFRACTIVE INDEX
   std::vector<G4double> rIndex_energies = {optPhotMinE_, optPhotMaxE_};
@@ -183,10 +184,21 @@ G4MaterialPropertiesTable* TPB_properties(){
   std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
   std::vector<G4double> absLength  = {noAbsLength_, noAbsLength_};
   
-   // WLS ABSORPTION LENGTH (Version NoSecWLS)
-   // The NoSecWLS is forced by setting the WLS_absLength to noAbsLength_
-   // for wavelengths higher than 380 nm where the WLS emission spectrum starts.
-   std::vector<G4double> WLS_abs_energy = {
+  // WLS ABSORPTION LENGTH (Version NoSecWLS)
+  // The NoSecWLS is forced by setting the WLS_absLength to noAbsLength_
+  // for wavelengths higher than 380 nm where the WLS emission spectrum starts.
+
+  // TODO remember optPhot{Min,Max}E_ !!!!!!!!!!!!!!!!!!!!!!!!!
+  auto WLS_abs_energy = n4::factor_over(c4::hc/nm, {380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150});
+
+
+
+
+
+
+
+
+  std::vector<G4double> WLS_abs_energy = {
      optPhotMinE_,
      h_Planck * c_light / (380. * nm),  h_Planck * c_light / (370. * nm),
      h_Planck * c_light / (360. * nm),  h_Planck * c_light / (330. * nm),
