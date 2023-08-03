@@ -90,9 +90,7 @@ G4double XenonRefractiveIndex(G4double energy, G4double density)
   G4double Energy_peak  = (h_Planck * c_light / Wavelength_peak);
   G4double Energy_sigma = (h_Planck * c_light * Wavelength_sigma / pow(Wavelength_peak,2));
 
-  G4double intensity = exp(-pow(Energy_peak/eV-energy/eV,2) /
-  (2*pow(Energy_sigma/eV, 2))) /
-  (Energy_sigma/eV*sqrt(pi*2.));
+   G4double intensity = exp(-pow(Energy_peak-energy, 2) / (2 * pow(Energy_sigma, 2))) / (Energy_sigma / eV * sqrt(pi*2));
 
   return intensity;
 }
