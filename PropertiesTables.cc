@@ -17,9 +17,11 @@
 
 using namespace CLHEP;
 
-const G4double optPhotMinE_ =  0.2  * eV;
-const G4double optPhotMaxE_ = 11.5  * eV;
-const G4double noAbsLength_ = 1.e8  * m;
+const G4double optPhotMinE_  =  0.2  * eV;
+const G4double optPhotMaxE_  = 11.5  * eV;
+const G4double optPhotMaxWL_ = optPhotMinE_ * nm / c4::hc;
+const G4double optPhotMinWL_ = optPhotMaxE_ * nm / c4::hc;
+const G4double noAbsLength_  = 1.e8  * m;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -182,49 +184,22 @@ G4MaterialPropertiesTable* TPB_properties() {
   // The NoSecWLS is forced by setting the WLS_absLength to noAbsLength_
   // for wavelengths higher than 380 nm where the WLS emission spectrum starts.
 
-  // TODO remember optPhot{Min,Max}E_ !!!!!!!!!!!!!!!!!!!!!!!!!
-  // auto WLS_abs_energy = n4::factor_over(c4::hc/nm, {380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150});
+  auto WLS_abs_energy = n4::factor_over(c4::hc/nm, {optPhotMaxWL_, 380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150, optPhotMinWL_});
 
-  // OPTION 1
-  auto max_wl = optPhotMinE_ * nm / c4::hc;
-  auto min_wl = optPhotMaxE_ * nm / c4::hc;
-  auto WLS_abs_energy_1 = n4::factor_over(c4::hc/nm, {max_wl, 380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150, min_wl});
+  auto infinite = noAbsLength_ / nm;
+  auto WLS_absLength = n4::scale_by(nm, {infinite, 50, 30, 30, 50, 80, 100, 100, 400, 400, 350, 250, 350, 400, 400});
 
-  // OPTION 2
-  auto WLS_abs_energy_2 = n4::factor_over(c4::hc/nm,        { 380, 370, 360, 330, 320, 310, 300, 270, 250, 230, 210, 190, 170, 150}        );
-  WLS_abs_energy_2.insert   (WLS_abs_energy_2.begin(), optPhotMinE_);
-  WLS_abs_energy_2.push_back(                          optPhotMaxE_);
-
-
-
-  constexpr bool first = true;
-  WLS_abs_energy = first ? WLS_abs_energy_1 : WLS_abs_energy_2;
-
-
-
-  std::vector<G4double> WLS_abs_energy = {
-     optPhotMinE_,
-     h_Planck * c_light / (380. * nm),  h_Planck * c_light / (370. * nm),
-     h_Planck * c_light / (360. * nm),  h_Planck * c_light / (330. * nm),
-     h_Planck * c_light / (320. * nm),  h_Planck * c_light / (310. * nm),
-     h_Planck * c_light / (300. * nm),  h_Planck * c_light / (270. * nm),
-     h_Planck * c_light / (250. * nm),  h_Planck * c_light / (230. * nm),
-     h_Planck * c_light / (210. * nm),  h_Planck * c_light / (190. * nm),
-     h_Planck * c_light / (170. * nm),  h_Planck * c_light / (150. * nm),
-     optPhotMaxE_
-   };
-
-   std::vector<G4double> WLS_absLength = {
-     noAbsLength_,                 // ~6200 nm
-     noAbsLength_,   50. * nm,     // 380 , 370 nm
-     30. * nm,      30. * nm,      // 360 , 330 nm
-     50. * nm,      80. * nm,      // 320 , 310 nm
-     100. * nm,     100. * nm,     // 300 , 270 nm
-     400. * nm,     400. * nm,     // 250 , 230 nm
-     350. * nm,     250. * nm,     // 210 , 190 nm
-     350. * nm,     400. * nm,     // 170 , 150 nm
-     400. * nm                     // ~108 nm
-   };
+   // std::vector<G4double> WLS_absLength = {
+   //   noAbsLength_,                 // ~6200 nm
+   //   noAbsLength_,   50. * nm,     // 380 , 370 nm
+   //   30. * nm,      30. * nm,      // 360 , 330 nm
+   //   50. * nm,      80. * nm,      // 320 , 310 nm
+   //   100. * nm,     100. * nm,     // 300 , 270 nm
+   //   400. * nm,     400. * nm,     // 250 , 230 nm
+   //   350. * nm,     250. * nm,     // 210 , 190 nm
+   //   350. * nm,     400. * nm,     // 170 , 150 nm
+   //   400. * nm                     // ~108 nm
+   // };
 
    //for (int i=0; i<WLS_abs_energy.size(); i++)
    //  G4cout << "* TPB WLS absLength:  " << std::setw(8) << WLS_abs_energy[i] / eV
