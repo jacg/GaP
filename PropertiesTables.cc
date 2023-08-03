@@ -234,23 +234,23 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
      //     .copy_from(xenon_pt, {"cosas"})
      .done();
 
-   //return n4::material_properties()
-    //.add("ABSLENGTH", abs_energy, absLength)
-    //.add("WORK_FUNCTION", stainless_wf) //TRUE NEEDED
-    //.add("OP_PHOTOELECTRIC_PROBABILITY", photoe_p, true) //TRUE NEEDED
+   // return n4::material_properties{}
+   //  .add("ABSLENGTH", optPhotRangeE_, abs_length)
+   //  .NEW("WORK_FUNCTION", stainless_wf)            //TRUE NEEDED
+   //  .NEW("OP_PHOTOELECTRIC_PROBABILITY", photoe_p) //TRUE NEEDED
 
 
-    //.add("RINDEX", prop_vec->GetEnergyVector(), prop_vec->GetPropertyVector() )
-    //.add("SCINTILLATIONCOMPONENT1", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT1"))
-    //.add("SCINTILLATIONCOMPONENT2", xenon_pt->GetProperty("SCINTILLATIONCOMPONENT2"))
-    //.add("SCINTILLATIONYIELD", xenon_pt->GetProperty("SCINTILLATIONYIELD"))
-    //.add("RESOLUTIONSCALE", xenon_pt->GetProperty("RESOLUTIONSCALE"))
-    //.add("SCINTILLATIONTIMECONSTANT1", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT1"))
-    //.add("SCINTILLATIONTIMECONSTANT2", xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT2"))
-    //.add("SCINTILLATIONYIELD1", xenon_pt->GetProperty("SCINTILLATIONYIELD1"))
-    //.add("SCINTILLATIONYIELD2", xenon_pt->GetProperty("SCINTILLATIONYIELD2"))
-    //.add("ATTACHMENT", xenon_pt->GetProperty("ATTACHMENT"),1)  //TRUE NEEDED
-    //.done();
+   //  .add("RINDEX", prop_vec->GetEnergyVector(), prop_vec->GetPropertyVector() )
+   //  .add("SCINTILLATIONCOMPONENT1"    , xenon_pt->GetProperty("SCINTILLATIONCOMPONENT1"))
+   //  .add("SCINTILLATIONCOMPONENT2"    , xenon_pt->GetProperty("SCINTILLATIONCOMPONENT2"))
+   //  .add("SCINTILLATIONYIELD"         , xenon_pt->GetProperty("SCINTILLATIONYIELD"))
+   //  .add("RESOLUTIONSCALE"            , xenon_pt->GetProperty("RESOLUTIONSCALE"))
+   //  .add("SCINTILLATIONTIMECONSTANT1" , xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT1"))
+   //  .add("SCINTILLATIONTIMECONSTANT2" , xenon_pt->GetProperty("SCINTILLATIONTIMECONSTANT2"))
+   //  .add("SCINTILLATIONYIELD1"        , xenon_pt->GetProperty("SCINTILLATIONYIELD1"))
+   //  .add("SCINTILLATIONYIELD2"        , xenon_pt->GetProperty("SCINTILLATIONYIELD2"))
+   //  .NEW("ATTACHMENT"                 , xenon_pt->GetProperty("ATTACHMENT"))  //TRUE NEEDED
+   //  .done();
 
 }
 
