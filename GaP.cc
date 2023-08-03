@@ -613,11 +613,14 @@ int main(int argc, char *argv[]) {
                                                 -> set((new n4::run_action) -> begin(delete_file_short_and_long)));
                                                 //-> set((new n4::run_action) -> end(print_energy)));
                                                 //-> set((new n4::run_action) -> end(reset_eventCounter)));
+
     //    run_manager -> SetUserInitialization(new n4::geometry{geometry});
+
     auto air = n4::material("G4_AIR");
     auto radius = 180./2  * mm;
     auto vessel = n4::box("world").cube(3*radius).volume(air);
-    run_manager -> SetUserInitialization(new n4::geometry{[&] { build_mesh_holder(radius, vessel, air, air); return n4::place(vessel).now(); }});
+    run_manager -> SetUserInitialization(new n4::geometry{[&] { place_mesh_holder_in(vessel); return n4::place(vessel).now(); }});
+
     run_manager -> Initialize();
 
     n4::ui(argc, argv);

@@ -8,8 +8,10 @@
 
 #include <FTFP_BERT.hh>
 #include <G4EmStandardPhysics_option4.hh>
+#include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4OpticalPhysics.hh>
+#include <G4PVPlacement.hh>
 #include <G4RandomDirection.hh>
 #include <G4RunManagerFactory.hh>
 #include <G4SubtractionSolid.hh>
@@ -20,7 +22,94 @@
 #include <iostream>
 
 
-void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Material* peek, G4Material* steel) {
+const auto world_size = 0.5 * m;
+
+const auto vessel_out_rad_    = 288./2  *mm;
+const auto vessel_out_length_ = 46.679  *cm;
+const auto vessel_rad_        = 276./2  *mm;
+const auto vessel_length_     = 38.599  *cm; // Adjusted length so that the gas volume is centered. Original length (38.639  *cm),
+
+const auto mesh_rad_          = 104./2  *mm;
+const auto mesh_thickn_       = 0.075   *mm;
+const auto mesh_transparency_ = 0.95;
+
+const auto meshBracket_rad_      = 180./2  *mm;
+const auto meshBracket_thickn_   = 6.      *mm;
+const auto anodeBracket_rad_     = 160./2  *mm;
+const auto anodeBracket_thickn_  = 6.975   *mm;
+
+const auto pmt_rad_ = 25.4/2  *mm;
+
+const auto enclosure_pmt_rad_        = 120./2  *mm;
+const auto enclosure_pmt_thickn_     = 8.5     *mm;
+const auto enclosure_pmt_length_     = 113.5   *mm;
+const auto enclosurevac_pmt_length_  = 110.5   *mm;
+
+const auto plate_pmt_rad_        = 105./2  *mm;
+const auto plate_pmt_thickn_     = 105./2  *mm;
+const auto plate_pmt_length_     = 10      *mm;
+const auto plateUp_pmt_length_   = 15      *mm;
+const auto plateUp_pmt_thickn_   = 21.5    *mm;
+
+const auto pmtHolder_rad_        = 115./2  *mm;
+const auto pmtHolder_length_     = 9.      *mm;
+
+const auto quartz_window_rad_    = 108./2  *mm;
+const auto quartz_window_thickn_ = 3       *mm;
+const auto tpb_coating_thickn_   = 3       *micrometer;
+
+const auto photoe_prob_       = 0.;
+const auto pressure_          = 10.* bar;
+const auto temperature_       = 293. * kelvin;
+//const auto sc_yield_        =  22222./MeV; // Wsc = 45 eV, fr
+const auto sc_yield_          = 1./GeV;
+//const auto sc_yield_        =  1000./MeV;
+const auto elifetime_         = 1e6* ms;
+// const auto drift_vel_         = 1. * mm/microsecond;
+// const auto drift_transv_diff_ = 1. * mm/sqrt(cm);
+// const auto drift_long_diff_   = .3 * mm/sqrt(cm);
+// const auto el_field_          = 16.0 * kilovolt/cm;
+// const auto el_vel_            = 3. * mm/microsecond;
+// const auto el_transv_diff_    = 1. * mm/sqrt(cm);
+// const auto el_long_diff_      = .3 * mm/sqrt(cm);
+
+G4Material* peek;
+G4Material* steel;
+G4Material* Cu;
+G4Material* vacuum;
+G4Material* mesh_mat;
+G4Material* quartz;
+G4Material* tpb;
+G4Material* gas_;
+G4LogicalVolume* world;
+
+// Must call this at the start of any sub-geometry that you want to visualise
+// without having to construct the rest of the geometry.
+void ensure_initialized() {
+  static bool initialized = false;
+  if (initialized) { return; }
+  initialized = true;
+
+  Cu     = n4::material("G4_Cu");
+  vacuum = n4::material("G4_Galactic");
+  steel  = n4::material("G4_STAINLESS-STEEL");
+
+  gas_     = GAr_with_properties( pressure_, temperature_, sc_yield_, elifetime_);
+  mesh_mat = FakeDielectric_with_properties(gas_, "mesh_mat",
+                                            pressure_, temperature_, mesh_transparency_, mesh_thickn_,
+                                            sc_yield_, elifetime_, photoe_prob_);
+  peek   = peek_with_properties();
+  quartz = quartz_with_properties();
+  tpb    = TPB_with_properties();
+  world = n4::box("world").cube(world_size).volume(vacuum);
+}
+
+
+void place_mesh_holder_in(G4LogicalVolume* vessel) {
+  // Ensure this sub-geometry can be built (probably for visualization) without
+  // needing to construct the rest of the geometry
+  ensure_initialized();
+
   // Peek Mesh Holder (holds cathode and gate)
   G4double meshHolder_length_    = 36.75     *mm;
   G4double meshHolder_width_     = 21.035    *mm;
@@ -72,74 +161,10 @@ void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Mat
   }
 }
 
-
 G4PVPlacement* geometry() {
+  ensure_initialized();
+
   auto model_new_= 1;
-
-  G4double world_size = 0.5 * m;
-
-  G4double vessel_out_rad_    = 288./2  *mm;
-  G4double vessel_out_length_ = 46.679  *cm;
-  G4double vessel_rad_        = 276./2  *mm;
-  G4double vessel_length_     = 38.599  *cm; // Adjusted length so that the gas volume is centered. Original length (38.639  *cm),
-
-  G4double mesh_rad_          = 104./2  *mm;
-  G4double mesh_thickn_       = 0.075   *mm;
-  G4double mesh_transparency_ = 0.95;
-
-  G4double meshBracket_rad_      = 180./2  *mm;
-  G4double meshBracket_thickn_   = 6.      *mm;
-  G4double anodeBracket_rad_     = 160./2  *mm;
-  G4double anodeBracket_thickn_  = 6.975   *mm;
-
-  G4double pmt_rad_ = 25.4/2  *mm;
-
-  G4double enclosure_pmt_rad_        = 120./2  *mm;
-  G4double enclosure_pmt_thickn_     = 8.5     *mm;
-  G4double enclosure_pmt_length_     = 113.5   *mm;
-  G4double enclosurevac_pmt_length_  = 110.5   *mm;
-
-  G4double plate_pmt_rad_        = 105./2  *mm;
-  G4double plate_pmt_thickn_     = 105./2  *mm;
-  G4double plate_pmt_length_     = 10      *mm;
-  G4double plateUp_pmt_length_   = 15      *mm;
-  G4double plateUp_pmt_thickn_   = 21.5    *mm;
-
-  G4double pmtHolder_rad_        = 115./2  *mm;
-  G4double pmtHolder_length_     = 9.      *mm;
-
-  G4double quartz_window_rad_    = 108./2  *mm;
-  G4double quartz_window_thickn_ = 3       *mm;
-  G4double tpb_coating_thickn_   = 3       *micrometer;
-
-  G4double photoe_prob_       = 0.;
-  G4double pressure_          = 10.* bar;
-  G4double temperature_       = 293. * kelvin;
-  //G4double sc_yield_        =  22222./MeV; // Wsc = 45 eV, fr
-  G4double sc_yield_          = 1./GeV;
-  //G4double sc_yield_        =  1000./MeV;
-  G4double elifetime_         = 1e6* ms;
-  // G4double drift_vel_         = 1. * mm/microsecond;
-  // G4double drift_transv_diff_ = 1. * mm/sqrt(cm);
-  // G4double drift_long_diff_   = .3 * mm/sqrt(cm);
-  // G4double el_field_          = 16.0 * kilovolt/cm;
-  // G4double el_vel_            = 3. * mm/microsecond;
-  // G4double el_transv_diff_    = 1. * mm/sqrt(cm);
-  // G4double el_long_diff_      = .3 * mm/sqrt(cm);
-
-  auto Cu     = n4::material("G4_Cu");
-  auto vacuum = n4::material("G4_Galactic");
-  auto steel  = n4::material("G4_STAINLESS-STEEL");
-
-  auto gas_    = GAr_with_properties( pressure_, temperature_, sc_yield_, elifetime_);
-  auto mesh_mat = FakeDielectric_with_properties(gas_, "mesh_mat",
-                                                 pressure_, temperature_, mesh_transparency_, mesh_thickn_,
-                                                 sc_yield_, elifetime_, photoe_prob_);
-  auto peek   = peek_with_properties();
-  auto quartz = quartz_with_properties();
-  auto tpb    = TPB_with_properties();
-
-  auto world = n4::box("world").cube(world_size).volume(vacuum);
 
   //Cylinder, acting as the vessel
   auto vessel_steel = n4::tubs("vessel_steel").r(vessel_out_rad_).z(vessel_out_length_).volume(steel);
@@ -415,7 +440,7 @@ G4PVPlacement* geometry() {
     //n4::place(logic_A).in(vessel).rotate(*Rot45).at({A_xy, -A_xy, -A_z}).copy_no(2).check_overlaps().now();
     //n4::place(logic_A).in(vessel).rotate(*Rot135).at({A_xy, A_xy, -A_z}).copy_no(3).check_overlaps().now();
   } else {
-    build_mesh_holder(meshBracket_rad_, vessel, peek, steel);
+    place_mesh_holder_in(vessel);
   }
   return n4::place(world).now();
 }

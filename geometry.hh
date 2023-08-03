@@ -6,7 +6,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 
-void build_mesh_holder(G4double meshBracket_rad_, G4LogicalVolume* vessel, G4Material* peek, G4Material* steel);
+void place_mesh_holder_in(G4LogicalVolume* vessel);
 
 G4PVPlacement* geometry();
 
