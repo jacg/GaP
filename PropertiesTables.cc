@@ -255,82 +255,64 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
 }
 
 ////////////////////////////////////////////////////////////////////////
-
 G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime){
+  //e_lifetime = 1000.*ms;
+  // An argon gas proportional scintillation counter with UV avalanche photodiode scintillation
+  // readout C.M.B. Monteiro, J.A.M. Lopes, P.C.P.S. Simoes, J.M.F. dos Santos, C.A.N. Conde
 
-    //e_lifetime = 1000.*ms;
+  // REFRACTIVE INDEX
+  const G4int ri_entries = 200;
+  auto ri_energy = n4::linspace(optPhotMinE_, optPhotMaxE_, ri_entries);
 
-    // An argon gas proportional scintillation counter with UV avalanche photodiode scintillation
-    // readout C.M.B. Monteiro, J.A.M. Lopes, P.C.P.S. Simoes, J.M.F. dos Santos, C.A.N. Conde
+  auto ref_index_fn = [] (auto e) {
+    auto wl  = c4::hc / e * um / nm; // in micron
+    auto wl2 = std::pow(wl, 2);
+    return 1 + 0.012055*(0.2075 * wl2 / (91.012 * wl2 - 1) +
+                         0.0415 * wl2 / (87.892 * wl2 - 1) +
+                         4.3330 * wl2 / (214.02 * wl2 - 1));
+  };
 
-    // REFRACTIVE INDEX
-    const G4int ri_entries = 200;
-    G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+  auto rIndex = n4::map<G4double>(ref_index_fn, ri_energy);
 
+  // for (int i=0; i<ri_entries; i++) {
+  //   G4cout << "* GAr rIndex:  " << std::setw(5) << ri_energy[i]/eV
+  //          << " eV -> " << rIndex[i] << G4endl;
+  // }
 
-    vecd abs_energy_Ar;
-    vecd absLength_Ar;
-    vecd sc_energy_Ar;
-    vecd intensity_Ar;
-    const G4int sc_entries = 380;
+  // EMISSION SPECTRUM
+  auto intensity_fn = [&] (auto e) {
+    auto Wavelength_peak  = 128.000 * nm;
+    auto Wavelength_sigma =   2.929 * nm;
+    auto Energy_peak      = c4::hc / Wavelength_peak;
+    auto Energy_sigma     = c4::hc * Wavelength_sigma / pow(Wavelength_peak,2);
 
+    auto exponent    = -std::pow(Energy_peak - e, 2) / 2 / std::pow(Energy_sigma, 2);
+    auto denominator = Energy_sigma / eV * std::sqrt(CLHEP::twopi);
+    return std::exp(exponent) / denominator;
+  };
 
-    vecd ri_energy;
-    for (int i=0; i<ri_entries; i++) {
-      ri_energy.push_back(optPhotMinE_ + i * eWidth);
-    }
+  // Sampling from ~110 nm to 150 nm <----> from ~11.236 eV to 8.240 eV
+  const G4int sc_entries = 380;
+  auto sc_energy_Ar = n4::linspace(8.240 * eV, 11.236 * eV, sc_entries);
+  auto intensity_Ar = n4::map<G4double>(intensity_fn, sc_energy_Ar);
 
-    vecd rIndex;
-    for (int i=0; i<ri_entries; i++) {
-      G4double wl = h_Planck * c_light / ri_energy[i] * 1000; // in micron
-      // From refractiveindex.info
-      rIndex.push_back(1 + 0.012055*(0.2075*pow(wl,2)/(91.012*pow(wl,2)-1) +
-                                     0.0415*pow(wl,2)/(87.892*pow(wl,2)-1) +
-                                     4.3330*pow(wl,2)/(214.02*pow(wl,2)-1)));
-      //G4cout << "* GAr rIndex:  " << std::setw(5) << ri_energy[i]/eV
-      //       << " eV -> " << rIndex[i] << G4endl;
+  // for (int i=0; i<sc_entries; i++){
+  //   G4cout << "* GAr energy: " << std::setw(6) << sc_energy[i]/eV << " eV  ->  "
+  //          << std::setw(6) << intensity[i] << G4endl;
+  // }
 
-
-    // ABSORPTION LENGTH
-    abs_energy_Ar = {optPhotMinE_, optPhotMaxE_};
-    absLength_Ar  = {noAbsLength_, noAbsLength_};
-
-
-     // EMISSION SPECTRUM
-//    G4double Wavelength_peak  = 128.000 * nm;
-    G4double Wavelength_peak  = 128.000 * nm; // Xe, to be changed back
-    G4double Wavelength_sigma =   2.929 * nm;
-    G4double Energy_peak  = (h_Planck*c_light / Wavelength_peak);
-    G4double Energy_sigma = (h_Planck*c_light * Wavelength_sigma / pow(Wavelength_peak,2));
-    //G4cout << "*** GAr Energy_peak: " << Energy_peak/eV << " eV   Energy_sigma: "
-    //       << Energy_sigma/eV << " eV" << G4endl;
-
-    // Sampling from ~110 nm to 150 nm <----> from ~11.236 eV to 8.240 eV
-
-    sc_energy_Ar;
-    intensity_Ar;
-    for (int i=0; i<sc_entries; i++){
-      sc_energy_Ar.push_back(8.240*eV + 0.008*i*eV);
-      intensity_Ar.push_back(exp(-pow(Energy_peak/eV-sc_energy_Ar[i]/eV,2) /
-                              (2*pow(Energy_sigma/eV, 2)))/(Energy_sigma/eV*sqrt(pi*2.)));
-      //G4cout << "* GAr energy: " << std::setw(6) << sc_energy[i]/eV << " eV  ->  "
-      //       << std::setw(6) << intensity[i] << G4endl;
-    }
-
-    }
-
-    return n4::material_properties()
-        .add("RINDEX", ri_energy, rIndex)
-        .add("ABSLENGTH", abs_energy_Ar, absLength_Ar)
-        .add("SCINTILLATIONCOMPONENT1", sc_energy_Ar, intensity_Ar)
-        .add("SCINTILLATIONCOMPONENT2", sc_energy_Ar, intensity_Ar)
-        .NEW("ELSPECTRUM",  sc_energy_Ar, intensity_Ar)
-        .add("SCINTILLATIONYIELD", sc_yield)
-        .add("SCINTILLATIONTIMECONSTANT1",6.*ns)  // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-        .add("SCINTILLATIONTIMECONSTANT2", 3480.*ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-        .add("SCINTILLATIONYIELD1", .136) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-        .add("SCINTILLATIONYIELD2", .864) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
-        .add("RESOLUTIONSCALE", 1.0)
-        .NEW("ATTACHMENT", e_lifetime)
+  return n4::material_properties()
+    .add("RINDEX"                    ,      ri_energy,       rIndex)
+    .add("ABSLENGTH"                 , optPhotRangeE_, noAbsLength_)
+    .add("SCINTILLATIONCOMPONENT1"   , sc_energy_Ar  , intensity_Ar)
+    .add("SCINTILLATIONCOMPONENT2"   , sc_energy_Ar  , intensity_Ar)
+    .NEW("ELSPECTRUM"                , sc_energy_Ar  , intensity_Ar)
+    .add("SCINTILLATIONYIELD"        ,                   sc_yield  )
+    .add("SCINTILLATIONTIMECONSTANT1",                      6. * ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+    .add("SCINTILLATIONTIMECONSTANT2",                   3480. * ns) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+    .add("SCINTILLATIONYIELD1"       ,                       .136  ) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+    .add("SCINTILLATIONYIELD2"       ,                       .864  ) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
+    .add("RESOLUTIONSCALE"           ,                      1.0    )
+    .NEW("ATTACHMENT"                ,                   e_lifetime)
     .done();
 }
