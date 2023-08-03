@@ -23,24 +23,18 @@ const G4double noAbsLength_ = 1.e8  * m;
 
 
 ////////////////////////////////////////////////////////////////////////
+G4MaterialPropertiesTable* peek_properties(){ return n4::material_properties().done(); }
 
-G4MaterialPropertiesTable* peek_properties(){
 
-    return n4::material_properties()
-    .done();   
-    
-}
 ////////////////////////////////////////////////////////////////////////
-
 G4MaterialPropertiesTable* GXe_properties(G4double pressure,
-                               G4double temperature,
-                               G4int    sc_yield,
-                               G4double e_lifetime){
-   
+                                          G4double temperature,
+                                          G4int    sc_yield,
+                                          G4double e_lifetime){
     // REFRACTIVE INDEX
     const G4int ri_entries = 200;
     G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
-    
+
     std::vector<G4double> ri_energy;
     for (int i=0; i<ri_entries; i++) {
       ri_energy.push_back(optPhotMinE_ + i * eWidth);
@@ -54,11 +48,11 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
       // G4cout << "* GXe rIndex:  " << std::setw(7)
       //        << ri_energy[i]/eV << " eV -> " << rIndex[i] << G4endl;
     }
-    
+
     // ABSORPTION LENGTH
     std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
     std::vector<G4double> absLength  = {noAbsLength_, noAbsLength_};
-    
+
     // EMISSION SPECTRUM
     // Sampling from ~150 nm to 200 nm <----> from 6.20625 eV to 8.20625 eV
     const G4int sc_entries = 200;
@@ -74,9 +68,9 @@ G4MaterialPropertiesTable* GXe_properties(G4double pressure,
     //for (int i=0; i<sc_entries; i++) {
     //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
     //         << " eV -> " << intensity[i] << G4endl;
-    //}    
-    
-    
+    //}
+
+
     return n4::material_properties()
         .add("RINDEX", ri_energy, rIndex)
         .add("ABSLENGTH", abs_energy, absLength)
@@ -162,7 +156,7 @@ G4MaterialPropertiesTable* quartz_properties(){
      .22 * cm,    .215 * cm,  .00005*cm,
      .00005* cm
   };
-  
+
    return n4::material_properties()
     .add("RINDEX", ri_energy, rIndex)
     .add("ABSLENGTH", abs_energy, absLength)
@@ -178,12 +172,12 @@ G4MaterialPropertiesTable* TPB_properties() {
   // REFRACTIVE INDEX
   std::vector<G4double> rIndex_energies = {optPhotMinE_, optPhotMaxE_};
   std::vector<G4double> TPB_rIndex      = {1.67    , 1.67};
-  
+
   // ABSORPTION LENGTH
   // Assuming no absorption except WLS
   std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
   std::vector<G4double> absLength  = {noAbsLength_, noAbsLength_};
-  
+
   // WLS ABSORPTION LENGTH (Version NoSecWLS)
   // The NoSecWLS is forced by setting the WLS_absLength to noAbsLength_
   // for wavelengths higher than 380 nm where the WLS emission spectrum starts.
@@ -226,7 +220,7 @@ G4MaterialPropertiesTable* TPB_properties() {
    //  G4cout << "* TPB WLS absLength:  " << std::setw(8) << WLS_abs_energy[i] / eV
    //         << " eV  ==  " << std::setw(8) << (h_Planck * c_light / WLS_abs_energy[i]) / nm
    //         << " nm  ->  " << std::setw(6) << WLS_absLength[i] / nm << " nm" << G4endl;
-  
+
    // WLS EMISSION SPECTRUM
    // Implemented with formula (7), with parameter values in table (3)
    // Sampling from ~380 nm to 600 nm <--> from 2.06 to 3.26 eV
@@ -253,7 +247,7 @@ G4MaterialPropertiesTable* TPB_properties() {
       // G4cout << "* TPB WLSemi:  " << std::setw(4)
       //        << wl << " nm -> " << WLS_emiSpectrum[i] << G4endl;
     };
-   
+
   return n4::material_properties()
     .add("RINDEX", rIndex_energies, TPB_rIndex)
     .add("ABSLENGTH", abs_energy, abs_energy)
@@ -264,35 +258,35 @@ G4MaterialPropertiesTable* TPB_properties() {
     // According to the paper, the QE of TPB depends on the incident wavelength.
     // As Geant4 doesn't allow this possibility, it is set to the value corresponding
     // to Xe scintillation spectrum peak.
-    .done();   
+    .done();
 }
 
 ///////////////////////////////////////////////////////////////////////
 
 G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
-                                    G4double temperature,
-                                       G4double transparency,
-                                       G4double thickness,
-                                       G4int    sc_yield,
-                                       G4double e_lifetime,
-                                       G4double photoe_p){
+                                                     G4double temperature,
+                                                     G4double transparency,
+                                                     G4double thickness,
+                                                     G4int    sc_yield,
+                                                     G4double e_lifetime,
+                                                     G4double photoe_p){
 
    // ABSORPTION LENGTH
    G4double abs_length   = -thickness/log(transparency);
    std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
    std::vector<G4double> absLength  = {abs_length, abs_length};
-   
+
    // PHOTOELECTRIC REEMISSION
    // https://aip.scitation.org/doi/10.1063/1.1708797
    G4double stainless_wf = 4.3 * eV; // work function
-   
+
    G4MaterialPropertiesTable* xenon_pt = GXe_properties(pressure, temperature, sc_yield, e_lifetime);
    xenon_pt ->  AddProperty("ABSLENGTH", abs_energy, absLength);
    xenon_pt ->  AddConstProperty("WORK_FUNCTION", stainless_wf, true);
    xenon_pt ->  AddConstProperty ("OP_PHOTOELECTRIC_PROBABILITY", photoe_p, true);
-   
+
    return xenon_pt;
-   
+
    //return n4::material_properties()
     //.add("ABSLENGTH", abs_energy, absLength)
     //.add("WORK_FUNCTION", stainless_wf) //TRUE NEEDED
@@ -309,8 +303,8 @@ G4MaterialPropertiesTable* FakeDielectric_properties(G4double pressure,
     //.add("SCINTILLATIONYIELD1", xenon_pt->GetProperty("SCINTILLATIONYIELD1"))
     //.add("SCINTILLATIONYIELD2", xenon_pt->GetProperty("SCINTILLATIONYIELD2"))
     //.add("ATTACHMENT", xenon_pt->GetProperty("ATTACHMENT"),1)  //TRUE NEEDED
-    //.done();    
-  
+    //.done();
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -321,12 +315,12 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
 
     // An argon gas proportional scintillation counter with UV avalanche photodiode scintillation
     // readout C.M.B. Monteiro, J.A.M. Lopes, P.C.P.S. Simoes, J.M.F. dos Santos, C.A.N. Conde
- 
+
     // REFRACTIVE INDEX
     const G4int ri_entries = 200;
     G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
-    
-    
+
+
     std::vector<G4double> abs_energy_Ar;
     std::vector<G4double> absLength_Ar;
     std::vector<G4double> sc_energy_Ar;
@@ -348,13 +342,13 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
                                      4.3330*pow(wl,2)/(214.02*pow(wl,2)-1)));
       //G4cout << "* GAr rIndex:  " << std::setw(5) << ri_energy[i]/eV
       //       << " eV -> " << rIndex[i] << G4endl;
-      
-      
+
+
     // ABSORPTION LENGTH
     abs_energy_Ar = {optPhotMinE_, optPhotMaxE_};
     absLength_Ar  = {noAbsLength_, noAbsLength_};
-      
-      
+
+
      // EMISSION SPECTRUM
 //    G4double Wavelength_peak  = 128.000 * nm;
     G4double Wavelength_peak  = 128.000 * nm; // Xe, to be changed back
@@ -365,7 +359,7 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
     //       << Energy_sigma/eV << " eV" << G4endl;
 
     // Sampling from ~110 nm to 150 nm <----> from ~11.236 eV to 8.240 eV
-    
+
     sc_energy_Ar;
     intensity_Ar;
     for (int i=0; i<sc_entries; i++){
@@ -375,9 +369,9 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
       //G4cout << "* GAr energy: " << std::setw(6) << sc_energy[i]/eV << " eV  ->  "
       //       << std::setw(6) << intensity[i] << G4endl;
     }
-      
+
     }
-    
+
     return n4::material_properties()
         .add("RINDEX", ri_energy, rIndex)
         .add("ABSLENGTH", abs_energy_Ar, absLength_Ar)
@@ -391,16 +385,5 @@ G4MaterialPropertiesTable* GAr_properties(G4double sc_yield, G4double e_lifetime
         .add("SCINTILLATIONYIELD2", .864) // From https://dspace.mit.edu/bitstream/handle/1721.1/129347/1903.06706.pdf?sequence=2&isAllowed=y
         .add("RESOLUTIONSCALE", 1.0)
         .NEW("ATTACHMENT", e_lifetime)
-    .done();   
-
-}   
-
-///////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
+    .done();
+}
