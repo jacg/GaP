@@ -382,10 +382,10 @@ G4PVPlacement* geometry() {
   G4double plate1_pmt_z = enclosure_pmt_z - enclosure_pmt_length/2 - plate_pmt_length/2;
   G4VSolid* solid_plate1_pmt = n4::tubs("PMTplateBottom1").r(plate_pmt_rad+plate_pmt_thickn).z(plate_pmt_thickn).solid();
 
-  G4ThreeVector pos_pmt = G4ThreeVector(0, 0, 0);
-  G4ThreeVector pos_enclosure_pmt = G4ThreeVector(0, 0, 0);
-  G4ThreeVector pos_enclosurevac_pmt = G4ThreeVector(0, 0, 0);
-  G4ThreeVector pos = G4ThreeVector(0, 0, 0);
+  G4ThreeVector pos_pmt              = {0, 0, 0};
+  G4ThreeVector pos_enclosure_pmt    = {0, 0, 0};
+  G4ThreeVector pos_enclosurevac_pmt = {0, 0, 0};
+  G4ThreeVector pos                  = {0, 0, 0};
 
   for (G4int i = 0; i < G4int(pmt_PsX.size()); i++) {
     pos_pmt              = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,            -pmt_z);
