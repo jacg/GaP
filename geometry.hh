@@ -10,6 +10,7 @@ G4LogicalVolume* get_world();
 
 void place_mesh_holder_in(G4LogicalVolume* vessel);
 void place_quartz_window_holder_in(G4LogicalVolume* vessel);
+void place_pmt_holder_in(G4LogicalVolume* vessel);
 
 G4PVPlacement* geometry();
 

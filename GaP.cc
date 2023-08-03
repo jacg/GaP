@@ -618,7 +618,8 @@ int main(int argc, char *argv[]) {
 
     auto world = get_world();
     //auto& place_something_in = place_mesh_holder_in;
-    auto& place_something_in = place_quartz_window_holder_in;
+    //auto& place_something_in = place_quartz_window_holder_in;
+    auto& place_something_in = place_pmt_holder_in;
 
     run_manager -> SetUserInitialization(new n4::geometry{[&] { place_something_in(world); return n4::place(world).now(); }});
 

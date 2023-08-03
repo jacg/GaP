@@ -226,6 +226,75 @@ void place_quartz_window_holder_in(G4LogicalVolume* vessel) {
   }
 };
 
+void place_pmt_holder_in(G4LogicalVolume* vessel) {
+  //Build PMT
+  //auto pmt_length = pmt_.Length();
+  auto pmt_length = 43.0  *mm;
+  auto pmt_z      = 42.495*mm + pmt_length/2;
+
+  G4Tubs* solid_pmt = n4::tubs("SolidPMT").r(pmt_rad).z(pmt_length).solid(); // Hamamatsu pmt length: 43*mm | STEP pmt gap length: 57.5*mm
+
+  // Position pairs (x,Y) for PMTs
+  std::vector <float> pmt_PsX={-15.573,  20.68 , -36.253, 0, 36.253, -20.68 , 15.573};
+  std::vector <float> pmt_PsY={-32.871, -29.922,  -2.949, 0,  2.949,  29.922, 32.871};
+
+  // PMT clad
+  G4VSolid *solid_enclosure_pmt = n4::tubs("EnclosurePMT").r(enclosure_pmt_rad + enclosure_pmt_thickn).z(enclosure_pmt_length).solid();
+  auto enclosure_pmt_z = vessel_length/2 - enclosure_pmt_length/2;
+  auto relative_pmt_z  = enclosure_pmt_z - pmt_z;
+  // Vacuum inside the pmt enclosure
+  auto enclosurevac_pmt_z = vessel_length/2 - enclosurevac_pmt_length/2;
+  auto relativevac_pmt_z  = enclosurevac_pmt_z - pmt_z;
+  G4VSolid* solid_enclosurevac_pmt = n4::tubs("EnclosureVacPMT").r(enclosure_pmt_rad).z(enclosurevac_pmt_length).solid();
+
+  // PMT Holder
+  auto pmtHolder_z = enclosurevac_pmt_length/2 - pmtHolder_length/2;
+  G4VSolid* solid_pmtHolder = n4::tubs("PMTHolder").r(pmtHolder_rad).z(pmtHolder_length).solid();
+  // Steel plate enclosing the pmt tube
+  auto plate1_pmt_z = enclosure_pmt_z - enclosure_pmt_length/2 - plate_pmt_length/2;
+  G4VSolid* solid_plate1_pmt = n4::tubs("PMTplateBottom1").r(plate_pmt_rad+plate_pmt_thickn).z(plate_pmt_thickn).solid();
+
+  G4ThreeVector pos_pmt              = {0, 0, 0};
+  G4ThreeVector pos_enclosure_pmt    = {0, 0, 0};
+  G4ThreeVector pos_enclosurevac_pmt = {0, 0, 0};
+  G4ThreeVector pos                  = {0, 0, 0};
+
+  for (G4int i = 0; i < G4int(pmt_PsX.size()); i++) {
+    pos_pmt              = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,            -pmt_z);
+    pos_enclosure_pmt    = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,    relative_pmt_z);
+    pos_enclosurevac_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, relativevac_pmt_z);
+    pos                  = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, 0);
+
+    solid_enclosure_pmt    = new G4SubtractionSolid("EnclosurePMT_Sub"    , solid_enclosure_pmt    , solid_pmt, 0, pos_enclosure_pmt);
+    solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub" , solid_enclosurevac_pmt , solid_pmt, 0, pos_enclosurevac_pmt);
+    solid_pmtHolder        = new G4SubtractionSolid("PMTHolder_Sub"       , solid_pmtHolder        , solid_pmt, 0, pos);
+    solid_plate1_pmt       = new G4SubtractionSolid("PMTplateBottom1_Sub" , solid_plate1_pmt       , solid_pmt, 0, pos);
+  }
+
+  G4LogicalVolume *logic_enclosure_pmt = new G4LogicalVolume(solid_enclosure_pmt, steel, "EnclosurePMT");
+  n4::place(logic_enclosure_pmt).in(vessel).at(0, 0, -enclosure_pmt_z).check_overlaps().now();
+
+  G4LogicalVolume *logic_enclosurevac_pmt = new G4LogicalVolume(solid_enclosurevac_pmt, vacuum, "EnclosureVacPMT");
+  n4::place(logic_enclosurevac_pmt).in(logic_enclosure_pmt).at(0, 0, enclosure_pmt_z - enclosurevac_pmt_z).check_overlaps().now();
+
+  G4LogicalVolume *logic_pmtHolder = new G4LogicalVolume(solid_pmtHolder, steel, "PMTHolder");
+  n4::place(logic_pmtHolder).in(logic_enclosurevac_pmt).at(0, 0, pmtHolder_z).check_overlaps().now();
+
+  G4LogicalVolume *logic_plate1_pmt = new G4LogicalVolume(solid_plate1_pmt, steel, "PMTplateBottom1");
+  n4::place(logic_plate1_pmt).in(vessel).at(0, 0, -plate1_pmt_z).check_overlaps().now();
+
+  // Steel plate attached where the peek holders are attached
+  auto plate0_pmt = n4::tubs("PMTplateBottom0").r_inner(plate_pmt_rad).r_delta(plateUp_pmt_thickn).z(plateUp_pmt_length).volume(steel);
+  auto plate0_pmt_z = plate1_pmt_z - plate_pmt_length;
+  n4::place(plate0_pmt).in(vessel).at(0, 0, -plate0_pmt_z).check_overlaps().now();
+
+  // Upper steel plate at the pmt clad
+  auto plateUp_pmt_rad = enclosure_pmt_rad + enclosure_pmt_thickn;
+  auto plateUp_pmt = n4::tubs("PMTplateUp").r_inner(plateUp_pmt_rad).r_delta(plateUp_pmt_thickn).z(plateUp_pmt_length).volume(steel);
+  auto plateUp_pmt_z = vessel_length/2 - plateUp_pmt_length/2 ;
+  n4::place(plateUp_pmt).in(vessel).at(0, 0, -plateUp_pmt_z).check_overlaps().now();
+};
+
 G4PVPlacement* geometry() {
   ensure_initialized();
 
@@ -287,7 +356,7 @@ G4PVPlacement* geometry() {
     //auto source_box_z = cathode_z ;
     n4::box("source_box").xy(source_box_width).z(source_box_length).place(steel).in(vessel).at(0,0,source_box_z).check_overlaps().now();
 
-  }  else {
+  } else {
     cathode_z = 4.505*mm + mesh_thickn/2;  //cathode center from vessel center
 
     //Cathode Bracket
@@ -357,73 +426,7 @@ G4PVPlacement* geometry() {
 
   place_quartz_window_holder_in(vessel);
 
-  //Build PMT
-  //auto pmt_length = pmt_.Length();
-  auto pmt_length = 43.0  *mm;
-  auto pmt_z      = 42.495*mm + pmt_length/2;
-
-  G4Tubs* solid_pmt = n4::tubs("SolidPMT").r(pmt_rad).z(pmt_length).solid(); // Hamamatsu pmt length: 43*mm | STEP pmt gap length: 57.5*mm
-
-  // Position pairs (x,Y) for PMTs
-  std::vector <float> pmt_PsX={-15.573,  20.68 , -36.253, 0, 36.253, -20.68 , 15.573};
-  std::vector <float> pmt_PsY={-32.871, -29.922,  -2.949, 0,  2.949,  29.922, 32.871};
-
-  // PMT clad
-  G4VSolid *solid_enclosure_pmt = n4::tubs("EnclosurePMT").r(enclosure_pmt_rad + enclosure_pmt_thickn).z(enclosure_pmt_length).solid();
-  auto enclosure_pmt_z = vessel_length/2 - enclosure_pmt_length/2;
-  auto relative_pmt_z  = enclosure_pmt_z - pmt_z;
-  // Vacuum inside the pmt enclosure
-  auto enclosurevac_pmt_z = vessel_length/2 - enclosurevac_pmt_length/2;
-  auto relativevac_pmt_z  = enclosurevac_pmt_z - pmt_z;
-  G4VSolid* solid_enclosurevac_pmt = n4::tubs("EnclosureVacPMT").r(enclosure_pmt_rad).z(enclosurevac_pmt_length).solid();
-
-  // PMT Holder
-  auto pmtHolder_z = enclosurevac_pmt_length/2 - pmtHolder_length/2;
-  G4VSolid* solid_pmtHolder = n4::tubs("PMTHolder").r(pmtHolder_rad).z(pmtHolder_length).solid();
-  // Steel plate enclosing the pmt tube
-  auto plate1_pmt_z = enclosure_pmt_z - enclosure_pmt_length/2 - plate_pmt_length/2;
-  G4VSolid* solid_plate1_pmt = n4::tubs("PMTplateBottom1").r(plate_pmt_rad+plate_pmt_thickn).z(plate_pmt_thickn).solid();
-
-  G4ThreeVector pos_pmt              = {0, 0, 0};
-  G4ThreeVector pos_enclosure_pmt    = {0, 0, 0};
-  G4ThreeVector pos_enclosurevac_pmt = {0, 0, 0};
-  G4ThreeVector pos                  = {0, 0, 0};
-
-  for (G4int i = 0; i < G4int(pmt_PsX.size()); i++) {
-    pos_pmt              = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,            -pmt_z);
-    pos_enclosure_pmt    = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm,    relative_pmt_z);
-    pos_enclosurevac_pmt = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, relativevac_pmt_z);
-    pos                  = G4ThreeVector(pmt_PsX[i]*mm, pmt_PsY[i]*mm, 0);
-
-    solid_enclosure_pmt    = new G4SubtractionSolid("EnclosurePMT_Sub"    , solid_enclosure_pmt    , solid_pmt, 0, pos_enclosure_pmt);
-    solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub" , solid_enclosurevac_pmt , solid_pmt, 0, pos_enclosurevac_pmt);
-    solid_pmtHolder        = new G4SubtractionSolid("PMTHolder_Sub"       , solid_pmtHolder        , solid_pmt, 0, pos);
-    solid_plate1_pmt       = new G4SubtractionSolid("PMTplateBottom1_Sub" , solid_plate1_pmt       , solid_pmt, 0, pos);
-  }
-
-  G4LogicalVolume *logic_enclosure_pmt = new G4LogicalVolume(solid_enclosure_pmt, steel, "EnclosurePMT");
-  n4::place(logic_enclosure_pmt).in(vessel).at(0, 0, -enclosure_pmt_z).check_overlaps().now();
-
-  G4LogicalVolume *logic_enclosurevac_pmt = new G4LogicalVolume(solid_enclosurevac_pmt, vacuum, "EnclosureVacPMT");
-  n4::place(logic_enclosurevac_pmt).in(logic_enclosure_pmt).at(0, 0, enclosure_pmt_z - enclosurevac_pmt_z).check_overlaps().now();
-
-  G4LogicalVolume *logic_pmtHolder = new G4LogicalVolume(solid_pmtHolder, steel, "PMTHolder");
-  n4::place(logic_pmtHolder).in(logic_enclosurevac_pmt).at(0, 0, pmtHolder_z).check_overlaps().now();
-
-  G4LogicalVolume *logic_plate1_pmt = new G4LogicalVolume(solid_plate1_pmt, steel, "PMTplateBottom1");
-  n4::place(logic_plate1_pmt).in(vessel).at(0, 0, -plate1_pmt_z).check_overlaps().now();
-
-  // Steel plate attached where the peek holders are attached
-  auto plate0_pmt = n4::tubs("PMTplateBottom0").r_inner(plate_pmt_rad).r_delta(plateUp_pmt_thickn).z(plateUp_pmt_length).volume(steel);
-  auto plate0_pmt_z = plate1_pmt_z - plate_pmt_length;
-  n4::place(plate0_pmt).in(vessel).at(0, 0, -plate0_pmt_z).check_overlaps().now();
-
-  // Upper steel plate at the pmt clad
-  auto plateUp_pmt_rad = enclosure_pmt_rad + enclosure_pmt_thickn;
-  auto plateUp_pmt = n4::tubs("PMTplateUp").r_inner(plateUp_pmt_rad).r_delta(plateUp_pmt_thickn).z(plateUp_pmt_length).volume(steel);
-  auto plateUp_pmt_z = vessel_length/2 - plateUp_pmt_length/2 ;
-  n4::place(plateUp_pmt).in(vessel).at(0, 0, -plateUp_pmt_z).check_overlaps().now();
-
+  place_pmt_holder_in(vessel);
   if (model_new == 1) {
 
     // A
