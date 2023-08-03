@@ -312,7 +312,6 @@ G4PVPlacement* geometry() {
 
   G4double cathode_z;
   G4double cathBracket_z;
-  G4LogicalVolume * gas_el;
   G4double drift_length;
   G4double el_length;
   G4double drift_z;
@@ -378,7 +377,7 @@ G4PVPlacement* geometry() {
 
   // EL gap
   auto el_z = drift_z - drift_length/2 - el_length/2;
-  gas_el = n4::tubs("gas_el").r(anodeBracket_rad).z(el_length).volume(gas);
+  auto gas_el = n4::tubs("gas_el").r(anodeBracket_rad).z(el_length).volume(gas);
   n4::place(gas_el).in(vessel).at(0, 0, el_z).check_overlaps().now();
 
   // Gate
