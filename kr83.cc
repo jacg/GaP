@@ -37,46 +37,12 @@ void kr83_generator(G4Event* event, G4double energy_32_ , G4double energy_9_ , G
                                       
     // From the TORI /ENSDF data tables.
     
-    std::vector<float> energy_Xrays_;
-    std::vector<float> probability_Xrays_; 
 
-   energy_Xrays_.push_back(1.383*keV);
-   probability_Xrays_.push_back(0.01*0.099);
-   energy_Xrays_.push_back(1.435*keV);
-   probability_Xrays_.push_back(0.01*0.060 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.580*keV);
-   probability_Xrays_.push_back(0.01*0.21 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.581*keV);
-   probability_Xrays_.push_back(0.01*1.9 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.632*keV);
-   probability_Xrays_.push_back(0.01*1.1 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.647*keV);
-   probability_Xrays_.push_back(0.01*0.0094 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.699*keV);
-   probability_Xrays_.push_back(0.01*0.09  + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.707*keV);
-   probability_Xrays_.push_back(0.01*0.14 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.906*keV);
-   probability_Xrays_.push_back(0.01*0.008 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(1.907*keV);
-   probability_Xrays_.push_back(0.01*0.025 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(12.405*keV);
-   probability_Xrays_.push_back(0.01*3.90E-05 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(12.598*keV);
-   probability_Xrays_.push_back(0.01*5.05 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(12.651*keV);
-   probability_Xrays_.push_back(0.01*9.8 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(14.104*keV);
-   probability_Xrays_.push_back(0.01*0.70 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(14.111*keV);
-   probability_Xrays_.push_back(0.01*1.36  + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(14.231*keV);
-   probability_Xrays_.push_back(0.01*0.00429 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(14.311*keV);
-   probability_Xrays_.push_back(0.01*0.179 + probability_Xrays_[probability_Xrays_.size() -1]);
-   energy_Xrays_.push_back(14.326*keV);
-   probability_Xrays_.push_back(0.01*0.0064 + probability_Xrays_[probability_Xrays_.size() -1]);
-   
+    auto energy_Xrays_      = n4::scale_by(keV , {1.383, 1.435, 1.580, 1.581, 1.632, 1.647 , 1.699, 1.707, 1.906, 1.907, 12.405  , 12.598, 12.651, 14.104, 14.111, 14.231  , 14.311, 14.326 });
+    auto probability_Xrays_ = n4::scale_by(0.01, {0.099, 0.060, 0.21 , 1.9  , 1.1  , 0.0094, 0.09 , 0.14 , 0.008, 0.025, 3.90E-05,  5.05 ,  9.8  ,  0.70 ,  1.36 ,  0.00429,  0.179,  0.0064});
+    // Cumulative sum
+    for (size_t i=1; i < probability_Xrays_.size(); i++) { probability_Xrays_[i] += probability_Xrays_[i-1];}
+
     // Set particle type searching in particle table by name
     //auto particle_defgamma_ = G4ParticleTable::GetParticleTable()->
     //  FindParticle("gamma");
