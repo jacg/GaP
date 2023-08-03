@@ -17,9 +17,9 @@
 
 using namespace CLHEP;
 
-G4double optPhotMinE_ =  0.2  * eV;
-G4double optPhotMaxE_ = 11.5  * eV;
-G4double noAbsLength_ = 1.e8  * m;
+const G4double optPhotMinE_ =  0.2  * eV;
+const G4double optPhotMaxE_ = 11.5  * eV;
+const G4double noAbsLength_ = 1.e8  * m;
 
 
 ////////////////////////////////////////////////////////////////////////
