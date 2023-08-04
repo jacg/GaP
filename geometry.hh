@@ -6,6 +6,8 @@
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 
+#include "detector.hh"
+
 G4LogicalVolume* get_world();
 
 void place_mesh_holder_in(G4LogicalVolume* vessel);

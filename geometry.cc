@@ -76,6 +76,7 @@ const auto elifetime         = 1e6 * ms;
 
 G4Material* peek;
 G4Material* steel;
+G4Material* aluminum;
 G4Material* Cu;
 G4Material* vacuum;
 G4Material* mesh_mat;
@@ -94,6 +95,7 @@ void ensure_initialized() {
   Cu     = n4::material("G4_Cu");
   vacuum = n4::material("G4_Galactic");
   steel  = n4::material("G4_STAINLESS-STEEL");
+  aluminum = n4::material("G4_Al");
 
   gas      = GAr_with_properties( pressure, temperature, sc_yield, elifetime);
   mesh_mat = FakeDielectric_with_properties(gas, "mesh_mat",
@@ -233,7 +235,13 @@ void place_pmt_holder_in(G4LogicalVolume* vessel) {
   auto pmt_z      = 42.495*mm + pmt_length/2;
 
   G4Tubs* solid_pmt = n4::tubs("SolidPMT").r(pmt_rad).z(pmt_length).solid(); // Hamamatsu pmt length: 43*mm | STEP pmt gap length: 57.5*mm
-
+  G4LogicalVolume* logic_pmt = new G4LogicalVolume(solid_pmt, aluminum, "PMT");
+  
+  //auto end_of_event = [](G4HCofThisEvent *what){
+  //};
+  
+  auto sensitive_detector = new n4::sensitive_detector("DetectorPMT", process_hits);
+  logic_pmt -> SetSensitiveDetector(sensitive_detector);
   // Position pairs (x,Y) for PMTs
   std::vector <float> pmt_PsX={-15.573,  20.68 , -36.253, 0, 36.253, -20.68 , 15.573};
   std::vector <float> pmt_PsY={-32.871, -29.922,  -2.949, 0,  2.949,  29.922, 32.871};
@@ -269,6 +277,8 @@ void place_pmt_holder_in(G4LogicalVolume* vessel) {
     solid_enclosurevac_pmt = new G4SubtractionSolid("EnclosureVacPMT_Sub" , solid_enclosurevac_pmt , solid_pmt, 0, pos_enclosurevac_pmt);
     solid_pmtHolder        = new G4SubtractionSolid("PMTHolder_Sub"       , solid_pmtHolder        , solid_pmt, 0, pos);
     solid_plate1_pmt       = new G4SubtractionSolid("PMTplateBottom1_Sub" , solid_plate1_pmt       , solid_pmt, 0, pos);
+  
+    n4::place(logic_pmt).in(vessel).at(pos_pmt).copy_no(i).now();
   }
 
   G4LogicalVolume *logic_enclosure_pmt = new G4LogicalVolume(solid_enclosure_pmt, steel, "EnclosurePMT");
