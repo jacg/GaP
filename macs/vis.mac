@@ -137,5 +137,5 @@
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
 
-/vis/geometry/set/visibility GasVessel 0 false
-/vis/geometry/set/visibility vessel_steel 0 false
+# /vis/geometry/set/visibility GasVessel 0 false
+# /vis/geometry/set/visibility vessel_steel 0 false
