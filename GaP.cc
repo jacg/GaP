@@ -1,3 +1,4 @@
+#include "n4_run_manager.hh"
 #include "nain4.hh"
 #include "g4-mandatory.hh"
 #include "n4_ui.hh"
@@ -21,7 +22,6 @@
 #include <G4PrimaryVertex.hh>
 #include <G4RadioactiveDecayPhysics.hh>
 #include <G4RandomDirection.hh>
-#include <G4RunManagerFactory.hh>
 #include <G4Step.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4SystemOfUnits.hh>
@@ -358,28 +358,12 @@ int main(int argc, char *argv[]) {
     physics_list -> RegisterPhysics(new G4DecayPhysics());
 
 
-    auto run_manager = std::unique_ptr<G4RunManager>
-        {G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial)};
-
-    // Physics list must be attached to run manager before instantiating other user action classes
-    run_manager -> SetUserInitialization(physics_list);
-    
-    //G4ParticleTable needs to be call after G4VUserPhysicsList is instantiated and assigned to G4RunManager
-    auto opticalphoton = [](auto event){generate_particles_in_event(event, random_generator_inside_drift({}), generate_partilces_and_energies_tuples());};   	
-		//auto box_source = [](auto event){generate_particles_in_event(event, {0., 0., 167.6775*mm + 50.*mm}, generate_partilces_and_energies_tuples());};  //From the box_source
-		//auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);}; 
-		//auto kr83m_nexus= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); }; 
-		//auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_ion_decay(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0);};  //From the surface
-		//auto Am241 = [cathode_z](auto event){generate_ion_decay(event, {0., 0., cathode_z}, 0);};  //From the surface of the cathode
-
-    
-    run_manager -> SetUserInitialization((new n4::actions{opticalphoton})
-                                                //-> set(new n4::stepping_action{write_info_and_get_energy_step})
-                                                //-> set((new n4::tracking_action) -> post(create_trackIDVector) -> pre(delete_track)
-                                                //-> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
-                                                -> set((new n4::run_action) -> begin(delete_file_map_and_reset_eventCounter)));
-                                                
-     run_manager -> SetUserInitialization(new n4::geometry{geometry});
+    auto opticalphoton = [](auto event){generate_particles_in_event(event, random_generator_inside_drift({}), generate_partilces_and_energies_tuples());};
+    //auto box_source = [](auto event){generate_particles_in_event(event, {0., 0., 167.6775*mm + 50.*mm}, generate_partilces_and_energies_tuples());};  //From the box_source
+    //auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);};
+    //auto kr83m_nexus= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); };
+    //auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_ion_decay(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0);};  //From the surface
+    //auto Am241 = [cathode_z](auto event){generate_ion_decay(event, {0., 0., cathode_z}, 0);};  //From the surface of the cathode
 
     // auto world = get_world();
     // //auto& place_something_in = place_mesh_holder_in;
@@ -389,7 +373,17 @@ int main(int argc, char *argv[]) {
     // //auto place_something_in = [](auto world){ place_anode_el_gate_in(world, model_xxx_0()); };
     // run_manager -> SetUserInitialization(new n4::geometry{[&] { place_something_in(world); return n4::place(world).now(); }});
 
-    run_manager -> Initialize();
+    auto run_manager = n4::run_manager::create()
+        .physics(physics_list)
+        .geometry(geometry)
+        .actions([&] {
+            return (new n4::actions{opticalphoton})
+                //-> set(new n4::stepping_action{write_info_and_get_energy_step})
+                //-> set((new n4::tracking_action) -> post(create_trackIDVector) -> pre(delete_track)
+                //-> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
+                -> set((new n4::run_action) -> begin(delete_file_map_and_reset_eventCounter))
+                ;
+        }); // .actions() initializes the run manager implicitly
 
     n4::ui(argc, argv);
 }
