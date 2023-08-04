@@ -24,7 +24,7 @@ struct field_cage_parameters {
 };
 
 field_cage_parameters model_something_old();
-field_cage_parameters model_new();
+field_cage_parameters model_something_new();
 
 void place_rings_in         (G4LogicalVolume* vessel, field_cage_parameters const & fcp);
 void place_anode_el_gate_in (G4LogicalVolume* vessel, field_cage_parameters const & fcp);
