@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
     // G4double source_pos_z = 0 * cm; //range: [-vessel_out_length_/2,vessel_out_length_]
     // G4double cathode_z = 4.505*mm; //cathode surface, not center
 
-    auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift(), 0);};
+    auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);};
     //auto kr83m= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); }; //From the box_source
     //auto gammas = [](auto event){ generate_gammas(event, {0., 0., 167.6775*mm + 50.*mm}, 0); }; //From the box_source
     //auto electrons = [](auto event){generate_electrons(event, {0., 0., 0.}, 0); };
