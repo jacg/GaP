@@ -319,6 +319,32 @@ int main(int argc, char *argv[]) {
 
     [[maybe_unused]]
     auto reset_eventCounter = [&eventCounter](G4Run const*){ eventCounter = 0; };
+    
+    
+    auto delete_file_map_and_reset_eventCounter = [& eventCounter](G4Run const* run){
+		const std::string& filename_map = "Detector_map_test.txt";
+		const std::string& filename_map_primaries = "Detector_map_test_primaries.txt";
+		
+		std::ofstream file1(filename_map, std::ios::out);
+		int colWidth = 20;
+		file1 << std::left << std::setw(colWidth) << "X";
+		file1 << std::left << std::setw(colWidth) << "Y";
+		file1 << std::left << std::setw(colWidth) << "Z";
+		file1 << std::left << std::setw(colWidth) << "Hits check";
+		file1 << std::endl;
+		file1.close();
+		
+		std::ofstream file2(filename_map_primaries, std::ios::out);
+		file2 << std::left << std::setw(colWidth) << "X";
+		file2 << std::left << std::setw(colWidth) << "Y";
+		file2 << std::left << std::setw(colWidth) << "Z";
+		file2 << std::left << std::setw(colWidth) << "Hits check primaries";
+		file2 << std::endl;
+		file2.close();
+    
+		eventCounter = 0;
+		
+	};
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -348,11 +374,10 @@ int main(int argc, char *argv[]) {
 
     
     run_manager -> SetUserInitialization((new n4::actions{opticalphoton})
-                                                -> set(new n4::stepping_action{write_info_and_get_energy_step})
-                                                //-> set((new n4::tracking_action) -> post(create_trackIDVector))
-                                                //-> set((new n4::tracking_action) -> pre(delete_track))
-                                                -> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
-                                                -> set((new n4::run_action) -> begin(delete_file_short_and_long)));
+                                                //-> set(new n4::stepping_action{write_info_and_get_energy_step})
+                                                //-> set((new n4::tracking_action) -> post(create_trackIDVector) -> pre(delete_track)
+                                                //-> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
+                                                -> set((new n4::run_action) -> begin(delete_file_map_and_reset_eventCounter)));
                                                 
      run_manager -> SetUserInitialization(new n4::geometry{geometry});
 
