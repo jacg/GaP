@@ -22,7 +22,6 @@
 #include <G4VSolid.hh>
 #include <iostream>
 
-
 const auto world_size = 0.5 * m;
 
 const auto vessel_out_rad    = 288./2  *mm;
@@ -317,8 +316,8 @@ field_cage_parameters model_something_old() {
   //auto cathBracket_z = 8.005*mm - meshBracket_thickn/2 + 2*D + 5*d + 6*ring_thickn;
 
   //Gas
-  fcp.drift_length = 96*mm - meshBracket_thickn ;
-  fcp.el_length    = 15*mm - anodeBracket_thickn/2;
+  fcp.drift_length = 14.8*mm + meshBracket_thickn ;
+  fcp.el_length    = 9.05*mm + meshBracket_thickn/2 - anodeBracket_thickn/2;
 
   // Drift
   fcp.drift_z = fcp.cathode_z - mesh_thickn/2 - fcp.drift_length/2;
@@ -381,16 +380,16 @@ void place_anode_el_gate_in (G4LogicalVolume* vessel, field_cage_parameters cons
   n4::tubs("gate").r(mesh_rad).z(mesh_thickn).place(mesh_mat).in(gas_el).at_z(gate_z).check_overlaps().now();
 
   // Gate Bracket
-  auto gateBracket_z = 12.745*mm + meshBracket_thickn/2;
-  n4::tubs("gateBracket").r_inner(mesh_rad).r(meshBracket_rad).z(meshBracket_thickn).place(steel).in(vessel).at_z(-gateBracket_z).check_overlaps().now();
+  auto gateBracket_z = gate_z; //CENTER??? 
+  n4::tubs("gateBracket").r_inner(mesh_rad).r(meshBracket_rad).z(meshBracket_thickn).place(steel).in(gas_el).at_z(gateBracket_z).check_overlaps().now();
 
   //Anode
   auto anode_z = - fcp.el_length/2 + mesh_thickn/2;
   n4::tubs("Anode").r(mesh_rad).z(mesh_thickn).place(mesh_mat).in(gas_el).at_z(anode_z).check_overlaps().now();
 
-  //Anode Bracket
-  auto anodeBracket_z = gateBracket_z + meshBracket_thickn/2 + 3.775*mm + anodeBracket_thickn/2;
-  n4::tubs("AnodeBracket").r_inner(mesh_rad).r(anodeBracket_rad).z(anodeBracket_thickn).place(steel).in(vessel).at_z(-anodeBracket_z).check_overlaps().now();
+  //Anode Bracket //CENTER??? 
+  auto anodeBracket_z = anode_z ;
+  n4::tubs("AnodeBracket").r_inner(mesh_rad).r(anodeBracket_rad).z(anodeBracket_thickn).place(steel).in(gas_el).at_z(anodeBracket_z).check_overlaps().now();
 
   // Peek Anode Holder
   auto anodeHolder_length  =  30       *mm;
