@@ -147,13 +147,6 @@ void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double /*time*
 }
 
 std::vector<std::tuple<G4ParticleDefinition*, G4double>> generate_particles_and_energies_tuples(){
-	std::vector<std::tuple<G4ParticleDefinition*, G4double>> particles_and_energies;
-	G4ParticleDefinition* opticalPhoton = G4OpticalPhoton::Definition();
-	particles_and_energies.push_back(std::make_tuple(opticalPhoton, 100.0 * keV));
-	
-    return particles_and_energies;
+    G4ParticleDefinition* opticalPhoton = G4OpticalPhoton::Definition();
+    return {{opticalPhoton, 100 * keV}};
 }
-	
-
-
-
