@@ -5,6 +5,7 @@
 #include "n4-volumes.hh"
 
 #include "geometry.hh"
+#include "ParticleGenerator.hh"
 #include "kr83.hh"
 
 #include <CLHEP/Units/PhysicalConstants.h>
@@ -41,123 +42,7 @@
 #include <memory>
 #include <random>
 #include <vector>
-
-
-void add_particle_to_vertex(G4PrimaryVertex* vertex, G4ParticleDefinition* particle, G4double energy) {
-    auto primary = new G4PrimaryParticle(particle);
-    primary -> SetKineticEnergy(energy);
-    primary -> SetMomentumDirection(G4RandomDirection());
-    // primary -> SetCharge(...)  if needed eventually
-    vertex -> SetPrimary(primary);
-};
-
-std::unique_ptr<G4PrimaryVertex> generate_vertex(G4ThreeVector pos) {
-    auto vertex = std::make_unique<G4PrimaryVertex>();
-    vertex -> SetPosition(pos.x(), pos.y(), pos.z());
-    return vertex;
-};
-
-void generate_particles_in_event(
-    G4Event* event,
-    std::function<G4ThreeVector()> generate_position,
-    std::vector<std::tuple<G4ParticleDefinition*, G4double>> const & particles_and_energies
-) {
-    auto vertex = generate_vertex(generate_position());
-    for (auto [particle, energy] : particles_and_energies) {
-        add_particle_to_vertex(vertex.get(), particle, energy);
-    }
-    event -> AddPrimaryVertex(vertex.release());
-}
-void generate_particles_in_event(
-    G4Event* event,
-    G4ThreeVector position,
-    std::vector<std::tuple<G4ParticleDefinition*, G4double>> const & particles_and_energies
-) { return generate_particles_in_event(event, [&position] { return position; }, particles_and_energies); }
-
-void banner(G4String msg) {
-    G4cout << "********************************** " << msg << " **********************************" << G4endl;
-}
-
-void generate_Co57(G4Event* event, G4ThreeVector position, G4double /*time*/){
-
-    //G4double lifetime = 271.8 * year;
-    banner("time");
-
-    auto gamma          = n4::find_particle("gamma");
-
-    auto p_xray_122 = 0.86;
-    auto p_no_xray_122  = 1 - p_xray_122;
-    static auto distribution_1 = n4::random::biased_choice{{p_xray_122, p_no_xray_122}};
-
-    auto p_xray_136 = 0.11;
-    auto p_no_xray_136  = 1 - p_xray_136;
-    static auto distribution_2 = n4::random::biased_choice{{p_xray_136, p_no_xray_136}};
-
-
-    auto random_event_1 = distribution_1();
-    auto random_event_2 = distribution_2();
-
-    if (random_event_1 == 0) { banner("DECAY 1"); generate_particles_in_event(event, position, {{gamma, 122 * keV}}); }
-    if (random_event_2 == 0) { banner("DECAY 2"); generate_particles_in_event(event, position, {{gamma, 136 * keV}}); }
-}
-
-void generate_Ba133(G4Event* event, G4ThreeVector position, G4double /*time*/){
-
-    //G4double lifetime = XXX * year;
-    //banner("time")
-    auto gamma = n4::find_particle("gamma");
-
-    auto p_xray = 0.99;
-    auto p_no_xray = 1 - p_xray;
-    static auto distribution_1 = n4::random::biased_choice{{p_xray, p_no_xray}};
-
-    auto p_gamma_356 = 0.62;
-    auto p_no_gamma_356 = 1 - p_gamma_356;
-    static auto distribution_2 = n4::random::biased_choice{{p_gamma_356, p_no_gamma_356}};
-
-    auto p_gamma_81 = 0.34;
-    auto p_no_gamma_81 = 1 - p_gamma_81;
-    static auto distribution_3 = n4::random::biased_choice{{p_gamma_81, p_no_gamma_81}};
-
-    auto p_gamma_303 = 0.18;
-    auto p_no_gamma_303 = 1 - p_gamma_303;
-    static auto distribution_4 = n4::random::biased_choice{{p_gamma_303, p_no_gamma_303}};
-
-
-    auto random_event_1 = distribution_1();
-    auto random_event_2 = distribution_2();
-    auto random_event_3 = distribution_3();
-    auto random_event_4 = distribution_4();
-
-    if (random_event_1 == 0) { /*banner("DECAY 1");*/ generate_particles_in_event(event, position, {{gamma,  31 * keV}}); }
-    if (random_event_2 == 0) { /*banner("DECAY 2");*/ generate_particles_in_event(event, position, {{gamma, 356 * keV}}); }
-    if (random_event_3 == 0) { /*banner("DECAY 3");*/ generate_particles_in_event(event, position, {{gamma,  81 * keV}}); }
-    if (random_event_4 == 0) { /*banner("DECAY 4");*/ generate_particles_in_event(event, position, {{gamma, 303 * keV}}); }
-}
-
-void generate_ion_decay(G4Event* event, G4ThreeVector position, G4double /*time*/){
-    std::string IonName{"Kr83m"};
-
-    G4int A, Z;
-    G4double E = 0;
-    //G4double charge = 0 * eplus;
-    auto T = 0*keV;
-
-    if      (IonName == "Co57" ) { Z = 27; A =  57; }
-    else if (IonName == "Ba133") { Z = 56; A = 133; }
-    else if (IonName == "Am241") { Z = 95; A = 241; }
-    else if (IonName == "Fe55" ) { Z = 26; A =  55; }
-    else if (IonName == "Kr83m") { Z = 36; A =  83; E = 41.557 * keV; }
-    else { throw "Unknown ion name: " + IonName; }
-
-    G4ParticleDefinition* ion = G4IonTable:: GetIonTable() -> GetIon(Z, A, E);
-
-    // TODO: is the charge really needed?
-    generate_particles_in_event(event, position, {{ion, T}});
-}
-
-
-
+#include <tuple>
 
 auto get_pre_volume_name(G4Step const * const step) {
     return step -> GetPreStepPoint() -> GetTouchableHandle() -> GetVolume() -> GetLogicalVolume() -> GetName();
@@ -165,93 +50,34 @@ auto get_pre_volume_name(G4Step const * const step) {
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello World!" << std::endl;
-
-    //G4double time;
-    //auto get_time[](auto step){ G4double time = step -> GetDeltaTime();};
-
-    // G4double vessel_out_rad_    = 288./2  *mm;
-    // G4double vessel_out_length_ = 46.679  *cm;
-    // G4double angle =  0 * rad;
-    // G4double source_pos_z = 0 * cm; //range: [-vessel_out_length_/2,vessel_out_length_]
-    // G4double cathode_z = 4.505*mm; //cathode surface, not center
-
-    auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);};
-    //auto kr83m= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); }; //From the box_source
-    //auto gammas = [](auto event){ generate_gammas(event, {0., 0., 167.6775*mm + 50.*mm}, 0); }; //From the box_source
-    //auto electrons = [](auto event){generate_electrons(event, {0., 0., 0.}, 0); };
-    //auto electrons = [](auto event){generate_electrons(event, {initial_pos()}, 0); };
-    //auto electrons = [](auto event){generate_inside(event, 0); };
-    //auto Kr83m2 = [](auto event){generate_Kr83m2_decay(event, 0); };
-    //auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_gammas(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0, 122.);};  //From the surface
-    //auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_ion_decay(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0);};  //From the surface
-    //auto Am241 = [cathode_z](auto event){generate_ion_decay(event, {0., 0., cathode_z}, 0);};  //From the surface of the cathode
-
+    
     G4double  energy_deposit_total;
     G4double  energy_deposit_total_1;
     G4double  energy_deposit_total_2;
     G4int  counts;
     G4int  eventCounter;
     std::vector<int> trackIDVector;
-
-    //auto get_energy = [](G4Step const* step){G4cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " << step -> GetPreStepPoint() -> GetKineticEnergy() << G4endl; }
-    [[maybe_unused]]
-    auto get_energy_old = [&energy_deposit_total](G4Step const* step) {
-        if (step -> GetPreStepPoint() -> GetTouchableHandle() -> GetVolume() -> GetLogicalVolume() -> GetName() == "gas_drift") {
-            energy_deposit_total += step -> GetTotalEnergyDeposit();
-        }
-        //G4cout << "********************************** " << energy_deposit_total << " **********************************" << G4endl;
-    } ;
-
-    [[maybe_unused]]
-    auto print_energy = [& energy_deposit_total](G4Event const*){G4cout << "*******************************/// " << energy_deposit_total << " ///*******************************"  << G4endl;} ;
-
+    
     const std::string& filename_event = "EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation_G4.txt";
     const std::string& filename_step = "EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation.txt";
-
-    //const std::string& filename_event_1 = "EnergyDepositTotal_Co57_10bar_sum_withoutCompton.txt";
+    
     const std::string& filename_event_1 = "EnergyDepositTotal_Kr83m_10bar_sum_withoutTransportation.txt";
     const std::string& filename_event_2 = "EnergyDepositTotal_Kr83m_10bar_sum_justCompton.txt";
+    
+////////////////////////////////////////////////////////////////////////
+//tracking actions
 
-    auto write_energy_event = [& energy_deposit_total, & filename_event, & eventCounter](G4Event const*) {
-        if (energy_deposit_total != 0.0) {
-            std::ofstream file;
-            file.open (filename_event, std::ios::app);
-            // file << energy_deposit_total << "\n";
-            file << energy_deposit_total * 1000. << "\n";
-            file.close();
-
-            //G4cout << "*************************************  :)  " << energy_deposit_total << "  (:  *************************************      <---------"  << G4endl;
-            eventCounter++;
-            if (eventCounter % 100000 == 0) {
-                G4cout << "*************************************  :)  " << eventCounter << "  (:  *************************************"  << G4endl;
-            }
-        }
-    } ;
-
-    [[maybe_unused]]
-    auto write_energy_event_double = [& energy_deposit_total_1, & energy_deposit_total_2, & filename_event_1, & filename_event_2, & eventCounter](G4Event const*) {
-        if (energy_deposit_total_1 != 0.0) {
-            std::ofstream file;
-            file.open (filename_event_1, std::ios::app);
-            file << energy_deposit_total_1 * 1000. << "\n";
-            //file << energy_deposit_total_1  << "\n";
-            file.close();
-        }
-        if (energy_deposit_total_2 != 0.0) {
-            std::ofstream file;
-            file.open (filename_event_2, std::ios::app);
-            file << energy_deposit_total_2 * 1000. << "\n";
-            //file << energy_deposit_total_2 << "\n";
-            file.close();
-        }
-
-        eventCounter++;
-        if (eventCounter % 10000 == 0) {
-            G4cout << "*************************************  :)  " << eventCounter << "  (:  *************************************"  << G4endl;
-        }
+   [[maybe_unused]]
+    auto create_trackIDVector = [& trackIDVector](G4Track const* track) {
+        G4int trackID = track->GetTrackID();
+        trackIDVector.push_back(trackID);
+        //G4cout << "******************************* " << "NUEVO TRACK AÑADIDO " << trackID << " *******************************"  << G4endl;
     };
 
-    auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &counts](G4Step const* step) {
+////////////////////////////////////////////////////////////////////////
+//stepping actions
+
+	auto write_info_and_get_energy_step = [&filename_step, &energy_deposit_total, &counts](G4Step const* step) {
 
         G4Track* track = step->GetTrack();
 
@@ -307,7 +133,7 @@ int main(int argc, char *argv[]) {
             }
         }
     };
-
+    
     [[maybe_unused]]
     auto get_energy_double = [&energy_deposit_total_1](G4Step const* step) {
         if (get_pre_volume_name(step) == "gas_drift") {
@@ -318,18 +144,7 @@ int main(int argc, char *argv[]) {
             if (interactionType != "Transportation") { energy_deposit_total_1 += energy_deposit_step; }
         }
     };
-
-    [[maybe_unused]]
-    auto get_energy = [&energy_deposit_total](G4Step const* step){
-        if (get_pre_volume_name(step) == "gas_drift") {
-            auto energy_deposit_step  = step -> GetTotalEnergyDeposit();
-            const G4VProcess* process = step -> GetPostStepPoint() -> GetProcessDefinedStep();
-            G4String interactionType = process -> GetProcessName();
-
-            if (interactionType != "Transportation") { energy_deposit_total += energy_deposit_step; }
-        }
-    };
-
+    
     [[maybe_unused]]
     auto get_energy_and_check_track= [&energy_deposit_total, &trackIDVector](G4Step const* step) {
         if (get_pre_volume_name(step) == "gas_drift") {
@@ -351,7 +166,8 @@ int main(int argc, char *argv[]) {
             }
         }
     };
-
+    
+    
     [[maybe_unused]]
     auto get_energy_compton_double = [&energy_deposit_total_1, &energy_deposit_total_2, &trackIDVector](G4Step const* step) {
         if (get_pre_volume_name(step) == "gas_drift") {
@@ -369,7 +185,7 @@ int main(int argc, char *argv[]) {
                 if (interactionType == "compt") {
                     G4int trackID = track->GetTrackID();
                     trackIDVector.push_back(trackID);
-                    //G4cout << "******************************* COMPTON *******************************"  << G4endl;
+                    //banner("COMPTON");
                     //G4cout << "******************************* new trackIDvalue" << trackID << " *******************************"  << G4endl;
                 }
 
@@ -381,42 +197,86 @@ int main(int argc, char *argv[]) {
                     //G4cout << "******************************* trackIDInVector " << trackIDInVector << " *******************************"  << G4endl;
                     if (trackIDInVector == particleID && particleType == "e-"){
                         energy_deposit_total_2 += energy_deposit_step; //with transportation and just compton
-                        //G4cout << "******************************* COMPTON ELECTRON *******************************"  << G4endl;
+                        //banner("COMPTON ELECTRON");
                         savedEnergyStep = true;
                     }
                 }
 
                 if (savedEnergyStep == false) {
                     energy_deposit_total_1 += energy_deposit_step;  //with transportation and without compton
-                    //G4cout << "*******************************  NO COMPTON ELECTRON *******************************"  << G4endl;
+                    //banner("NO COMPTON ELECTRON");
                 }
             }
         }
     };
 
-    [[maybe_unused]]
-    auto delete_track = [](G4Track const* track) {
-        // G4int parentID = track -> GetParentID();
-        // G4int trackID  = track -> GetTrackID();
-        G4ThreeVector momentum = track-> GetMomentumDirection();
-        //G4cout << "******************************* Momentum: " << momentum.x() << "  " << "Parent ID: " << parentID << "  " <<"Track ID: " << trackID << " *******************************"  << G4endl;
-        if (track -> GetVolume() -> GetLogicalVolume() -> GetName() != "vessel_steel") {
-            G4Track* non_const_track = const_cast<G4Track*>(track);
-            non_const_track->SetTrackStatus(fStopAndKill);
-            //G4cout << "******************************* Momentum: " <<track->GetVolume()->GetLogicalVolume()->GetName() << " *******************************"  << G4endl;
-            //auto trackStatus = track->GetTrackStatus();
-            //if (trackStatus == fStopAndKill) {
-            //G4cout << "******************************* DIED  *******************************"  << G4endl;
-            //}
+
+
+////////////////////////////////////////////////////////////////////////
+//event actions
+
+	auto write_energy_event = [& energy_deposit_total, & filename_event, & eventCounter](G4Event const*) {
+        if (energy_deposit_total != 0.0) {
+            std::ofstream file;
+            file.open (filename_event, std::ios::app);
+            // file << energy_deposit_total << "\n";
+            file << energy_deposit_total * 1000. << "\n";
+            file.close();
+			
+            //G4cout << "*************************************  :)  " << energy_deposit_total << "  (:  *************************************      <---------"  << G4endl;
+            eventCounter++;
+            if (eventCounter % 100000 == 0) {
+                G4cout << "*************************************  :)  " << eventCounter << "  (:  *************************************"  << G4endl;
+            }
         }
+    } ;
+    
+    
+    [[maybe_unused]]
+    auto write_energy_event_double = [& energy_deposit_total_1, & energy_deposit_total_2, & filename_event_1, & filename_event_2, & eventCounter](G4Event const*) {
+        if (energy_deposit_total_1 != 0.0) {
+            std::ofstream file;
+            file.open (filename_event_1, std::ios::app);
+            file << energy_deposit_total_1 * 1000. << "\n";
+            //file << energy_deposit_total_1  << "\n";
+            file.close();
+        }
+        if (energy_deposit_total_2 != 0.0) {
+            std::ofstream file;
+            file.open (filename_event_2, std::ios::app);
+            file << energy_deposit_total_2 * 1000. << "\n";
+            //file << energy_deposit_total_2 << "\n";
+            file.close();
+        }
+
+        eventCounter++;
+        if (eventCounter % 10000 == 0) {
+            G4cout << "*************************************  :)  " << eventCounter << "  (:  *************************************"  << G4endl;
+        }
+    };
+    
+    auto reset_energy = [&energy_deposit_total, &counts](G4Event const*){
+        energy_deposit_total = 0.0;
+        counts = 0.0;
     };
 
     [[maybe_unused]]
-    auto create_trackIDVector = [& trackIDVector](G4Track const* track) {
-        G4int trackID = track->GetTrackID();
-        trackIDVector.push_back(trackID);
-        //G4cout << "******************************* " << "NUEVO TRACK AÑADIDO " << trackID << " *******************************"  << G4endl;
+    auto reset_energy_and_trackIDVector = [&energy_deposit_total, &counts, &trackIDVector](G4Event const*){
+        energy_deposit_total = 0.0;
+        counts = 0.0;
+
+        std::vector<int> trackIDVector_empty;
+        trackIDVector = trackIDVector_empty;
     };
+
+    [[maybe_unused]]
+    auto reset_energy_double = [&energy_deposit_total_1, &energy_deposit_total_2](G4Event const*){
+        energy_deposit_total_1 = 0.0;
+        energy_deposit_total_2 = 0.0;
+    };
+
+////////////////////////////////////////////////////////////////////////
+//run actions
 
     auto delete_file_long = [&filename_step, &eventCounter](G4Run const*) {
 
@@ -457,35 +317,17 @@ int main(int argc, char *argv[]) {
         std::ofstream file2(filename_event_2, std::ios::out); // Ditto
     };
 
-    auto reset_energy = [&energy_deposit_total, &counts](G4Event const*){
-        energy_deposit_total = 0.0;
-        counts = 0.0;
-    };
-
-    [[maybe_unused]]
-    auto reset_energy_and_trackIDVector = [&energy_deposit_total, &counts, &trackIDVector](G4Event const*){
-        energy_deposit_total = 0.0;
-        counts = 0.0;
-
-        std::vector<int> trackIDVector_empty;
-        trackIDVector = trackIDVector_empty;
-    };
-
-    [[maybe_unused]]
-    auto reset_energy_double = [&energy_deposit_total_1, &energy_deposit_total_2](G4Event const*){
-        energy_deposit_total_1 = 0.0;
-        energy_deposit_total_2 = 0.0;
-    };
-
     [[maybe_unused]]
     auto reset_eventCounter = [&eventCounter](G4Run const*){ eventCounter = 0; };
+
+////////////////////////////////////////////////////////////////////////
 
     n4::silence hush{G4cout};
 
     G4int verbosity = 0;
     auto physics_list = new FTFP_BERT{verbosity};
     physics_list ->  ReplacePhysics(new G4EmStandardPhysics_option4());
-    //physics_list -> RegisterPhysics(new G4OpticalPhysics{});
+    physics_list -> RegisterPhysics(new G4OpticalPhysics{});
     physics_list -> RegisterPhysics(new G4RadioactiveDecayPhysics);
     physics_list -> RegisterPhysics(new G4DecayPhysics());
 
@@ -495,20 +337,24 @@ int main(int argc, char *argv[]) {
 
     // Physics list must be attached to run manager before instantiating other user action classes
     run_manager -> SetUserInitialization(physics_list);
-    run_manager -> SetUserInitialization((new n4::actions{kr83m})
+    
+    //G4ParticleTable needs to be call after G4VUserPhysicsList is instantiated and assigned to G4RunManager
+    auto opticalphoton = [](auto event){generate_particles_in_event(event, random_generator_inside_drift({}), generate_partilces_and_energies_tuples());};   	
+		//auto box_source = [](auto event){generate_particles_in_event(event, {0., 0., 167.6775*mm + 50.*mm}, generate_partilces_and_energies_tuples());};  //From the box_source
+		//auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);}; 
+		//auto kr83m_nexus= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); }; 
+		//auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_ion_decay(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0);};  //From the surface
+		//auto Am241 = [cathode_z](auto event){generate_ion_decay(event, {0., 0., cathode_z}, 0);};  //From the surface of the cathode
+
+    
+    run_manager -> SetUserInitialization((new n4::actions{opticalphoton})
                                                 -> set(new n4::stepping_action{write_info_and_get_energy_step})
                                                 //-> set((new n4::tracking_action) -> post(create_trackIDVector))
                                                 //-> set((new n4::tracking_action) -> pre(delete_track))
-                                                //-> set(new n4::stepping_action{get_energy})
-                                                //-> set(new n4::stepping_action{get_energy_and_check_track})
-                                                //-> set((new n4::event_action) -> begin(reset_energy))
-                                                //-> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy_and_trackIDVector))
                                                 -> set((new n4::event_action) -> end(write_energy_event) -> begin(reset_energy))
                                                 -> set((new n4::run_action) -> begin(delete_file_short_and_long)));
-                                                //-> set((new n4::run_action) -> end(print_energy)));
-                                                //-> set((new n4::run_action) -> end(reset_eventCounter)));
-
-       run_manager -> SetUserInitialization(new n4::geometry{geometry});
+                                                
+     run_manager -> SetUserInitialization(new n4::geometry{geometry});
 
     // auto world = get_world();
     // //auto& place_something_in = place_mesh_holder_in;
