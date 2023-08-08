@@ -357,8 +357,8 @@ int main(int argc, char *argv[]) {
     physics_list -> RegisterPhysics(new G4RadioactiveDecayPhysics);
     physics_list -> RegisterPhysics(new G4DecayPhysics());
 
-    auto opticalphoton = [](auto event){generate_particles_in_event(event, random_generator_inside_drift({}), generate_partilces_and_energies_tuples());};
-    //auto box_source = [](auto event){generate_particles_in_event(event, {0., 0., 167.6775*mm + 50.*mm}, generate_partilces_and_energies_tuples());};  //From the box_source
+    auto opticalphoton = [](auto event){generate_particles_in_event(event, random_generator_inside_drift({}), generate_particles_and_energies_tuples());};
+    //auto box_source = [](auto event){generate_particles_in_event(event, {0., 0., 167.6775*mm + 50.*mm}, generate_particles_and_energies_tuples());};  //From the box_source
     //auto kr83m = [](auto event){generate_ion_decay(event, random_generator_inside_drift({}), 0);};
     //auto kr83m_nexus= [](auto event){ kr83_generator(event, 32.1473*keV, 9.396*keV,  0.0490, 154.*ns); };
     //auto Co57 = [vessel_out_rad_, angle, source_pos_z](auto event){generate_ion_decay(event, {vessel_out_rad_*cos(angle), vessel_out_rad_*sin(angle), source_pos_z}, 0);};  //From the surface
